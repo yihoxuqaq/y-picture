@@ -5,6 +5,8 @@ import App from './App.vue'
 import router from './router'
 import 'ant-design-vue/dist/reset.css'
 import './request.ts'
+import '@/access'
+
 
 const app = createApp(App)
 
