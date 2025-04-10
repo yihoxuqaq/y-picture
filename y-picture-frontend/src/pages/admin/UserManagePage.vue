@@ -54,7 +54,7 @@
 import { SmileOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { listUserVoByPageUsingPost } from '@/api/userController.ts'
+import { deleteUserUsingPost, listUserVoByPageUsingPost } from '@/api/userController.ts'
 import dayjs from 'dayjs'
 
 // 数据
