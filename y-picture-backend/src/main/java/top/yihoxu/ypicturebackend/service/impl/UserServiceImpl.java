@@ -192,6 +192,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
+    public boolean isAdmin(User user) {
+        return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+    }
+
+
+    @Override
     public String getEncryptPassword(String userPassword) {
 
         final String SALT = "yihoxu";

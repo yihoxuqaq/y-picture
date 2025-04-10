@@ -1,6 +1,11 @@
 spring:
+  profiles:
+    active: local
   application:
     name: y-picture-backend
+  servlet:
+    multipart:
+      max-file-size: 10MB
   datasource:
     username: root
     password: zxc123hs
