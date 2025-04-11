@@ -1,5 +1,4 @@
 <template>
-  <div class="picture-upload">
     <div class="picture-upload">
       <a-upload
         list-type="picture-card"
@@ -15,9 +14,6 @@
         </div>
       </a-upload>
     </div>
-
-  </div>
-
 </template>
 <script setup lang="ts">
 import { message, type UploadProps } from 'ant-design-vue'
