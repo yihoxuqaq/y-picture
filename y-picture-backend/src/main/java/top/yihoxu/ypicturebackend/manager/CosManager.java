@@ -43,6 +43,7 @@ public class CosManager {
         return cosClient.getObject(getObjectRequest);
     }
 
+
     public PutObjectResult putPictureObject(String key, File file) {
         PutObjectRequest putObjectRequest = new PutObjectRequest(cosClientConfig.getBucket(), key, file);
         //对图片进行处理（获取基本信息也被视为一种处理）
