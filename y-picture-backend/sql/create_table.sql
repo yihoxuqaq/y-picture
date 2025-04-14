@@ -54,6 +54,10 @@ ALTER TABLE picture
     ADD COLUMN reviewerId BIGINT NULL COMMENT '审核人 ID',
     ADD COLUMN reviewTime DATETIME NULL COMMENT '审核时间';
 
+ALTER TABLE picture
+    -- 添加新列
+    ADD COLUMN thumbnailUrl varchar(512) NULL COMMENT '缩略图 url';
+
 -- 创建基于 reviewStatus 列的索引
 CREATE INDEX idx_reviewStatus ON picture (reviewStatus);
 

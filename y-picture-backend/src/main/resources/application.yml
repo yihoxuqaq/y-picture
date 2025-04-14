@@ -11,6 +11,11 @@ spring:
     password: zxc123hs
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/picture
+  redis:
+    database: 0
+    host: localhost
+    port: 6380
+    timeout: 5000
 server:
   port: 8123
   servlet:

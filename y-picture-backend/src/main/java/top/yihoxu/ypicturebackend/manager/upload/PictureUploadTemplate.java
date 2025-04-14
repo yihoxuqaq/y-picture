@@ -1,32 +1,22 @@
 package top.yihoxu.ypicturebackend.manager.upload;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpResponse;
-import cn.hutool.http.HttpStatus;
-import cn.hutool.http.HttpUtil;
-import cn.hutool.http.Method;
 import com.qcloud.cos.model.PutObjectResult;
+import com.qcloud.cos.model.ciModel.persistence.CIObject;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
+import com.qcloud.cos.model.ciModel.persistence.ProcessResults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import top.yihoxu.ypicturebackend.config.CosClientConfig;
-import top.yihoxu.ypicturebackend.exception.BusinessException;
-import top.yihoxu.ypicturebackend.exception.ErrorCode;
-import top.yihoxu.ypicturebackend.exception.ThrowUtils;
 import top.yihoxu.ypicturebackend.manager.CosManager;
 import top.yihoxu.ypicturebackend.model.dto.picture.UploadPictureResult;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -65,24 +55,55 @@ public abstract class PictureUploadTemplate {
             //上传图片
             PutObjectResult putObjectResult = cosManager.putPictureObject(uploadPath, file);
             ImageInfo imageInfo = putObjectResult.getCiUploadResult().getOriginalInfo().getImageInfo();
+            ProcessResults processResults = putObjectResult.getCiUploadResult().getProcessResults();
+            List<CIObject> objectList = processResults.getObjectList();
+            if (CollUtil.isNotEmpty(objectList)) {
+                CIObject ciObject = objectList.get(0);
+                CIObject thumbnail = ciObject;
+                if (objectList.size() > 1) {
+                    thumbnail = objectList.get(1);
+                }
+                //分装返回结果
+                return getUploadPictureResult(originalFilename, ciObject, thumbnail);
+            }
             //分装返回结果
-            UploadPictureResult uploadPictureResult = new UploadPictureResult();
-            int width = imageInfo.getWidth();
-            int height = imageInfo.getHeight();
-            double scale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
-            uploadPictureResult.setPicName(FileUtil.mainName(originalFilename));
-            uploadPictureResult.setPicSize(FileUtil.size(file));
-            uploadPictureResult.setPicWidth(width);
-            uploadPictureResult.setPicHeight(height);
-            uploadPictureResult.setPicScale(scale);
-            uploadPictureResult.setPicFormat(imageInfo.getFormat());
-            uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
-            return uploadPictureResult;
+            return getUploadPictureResult(imageInfo, originalFilename, file, uploadPath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             this.deleteTempFile(file);
         }
+    }
+
+    private UploadPictureResult getUploadPictureResult(String originalFilename, CIObject ciObject, CIObject thumbnail) {
+        UploadPictureResult uploadPictureResult = new UploadPictureResult();
+        int width = ciObject.getWidth();
+        int height = ciObject.getHeight();
+        double scale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
+        uploadPictureResult.setPicName(FileUtil.mainName(originalFilename));
+        uploadPictureResult.setPicSize(ciObject.getSize().longValue());
+        uploadPictureResult.setPicWidth(width);
+        uploadPictureResult.setPicHeight(height);
+        uploadPictureResult.setPicScale(scale);
+        uploadPictureResult.setPicFormat(ciObject.getFormat());
+        uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + ciObject.getKey());
+        uploadPictureResult.setThumbnailUrl(cosClientConfig.getHost() + "/" + thumbnail.getKey());
+        return uploadPictureResult;
+    }
+
+    private UploadPictureResult getUploadPictureResult(ImageInfo imageInfo, String originalFilename, File file, String uploadPath) {
+        UploadPictureResult uploadPictureResult = new UploadPictureResult();
+        int width = imageInfo.getWidth();
+        int height = imageInfo.getHeight();
+        double scale = NumberUtil.round(width * 1.0 / height, 2).doubleValue();
+        uploadPictureResult.setPicName(FileUtil.mainName(originalFilename));
+        uploadPictureResult.setPicSize(FileUtil.size(file));
+        uploadPictureResult.setPicWidth(width);
+        uploadPictureResult.setPicHeight(height);
+        uploadPictureResult.setPicScale(scale);
+        uploadPictureResult.setPicFormat(imageInfo.getFormat());
+        uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);
+        return uploadPictureResult;
     }
 
     /**
