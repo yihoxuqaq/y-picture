@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
+import top.yihoxu.ypicturebackend.common.DeleteRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadByBatchRequest;
@@ -46,6 +47,12 @@ public interface PictureService extends IService<Picture> {
             User loginUser
     );
 
+
+    /**
+     * 构建查询条件
+     * @param pictureQueryRequest
+     * @return
+     */
     QueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest);
 
 
@@ -88,4 +95,21 @@ public interface PictureService extends IService<Picture> {
      * @param loginUser
      */
     void fillReviewParams(Picture picture,User loginUser);
+
+
+    /**
+     * 校验空间图片
+     * @param picture
+     * @param loginUser
+     */
+    void checkPictureAuth(Picture picture,User loginUser);
+
+
+    /**
+     * 删除图片
+     * @param deleteRequest
+     * @param loginUser
+     * @return
+     */
+    boolean deletePictureById(DeleteRequest deleteRequest, User loginUser);
 }

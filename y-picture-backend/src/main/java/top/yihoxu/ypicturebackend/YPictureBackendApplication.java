@@ -7,7 +7,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @SpringBootApplication
 @EnableAspectJAutoProxy(exposeProxy = true)
-
 @MapperScan("top.yihoxu.ypicturebackend.mapper")
 public class YPictureBackendApplication {
 

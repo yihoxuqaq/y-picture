@@ -4,15 +4,19 @@
       <a-layout-header class="layoutHead">
         <GlobalHead />
       </a-layout-header>
-      <a-layout-content class="layoutContent">
-        <RouterView />
-      </a-layout-content>
+      <a-layout>
+        <GlobalSider />
+        <a-layout-content class="layoutContent">
+          <RouterView />
+        </a-layout-content>
+      </a-layout>
       <a-layout-footer class="layoutFooter">智能云图库</a-layout-footer>
     </a-layout>
   </div>
 </template>
 <script setup lang="ts">
 import GlobalHead from '@/components/GlobalHead.vue'
+import GlobalSider from '@/components/GlobalSider.vue'
 </script>
 
 <style scoped>
@@ -22,12 +26,14 @@ import GlobalHead from '@/components/GlobalHead.vue'
 .layoutHead {
   background-color: white;
 }
-.layoutContent{
+
+.layoutContent {
   background: linear-gradient(to right, #fefefe, #fff);
   margin-bottom: 28px;
   padding: 20px;
 }
-.layoutFooter{
+
+.layoutFooter {
   background: #efefef;
   padding: 16px;
   position: fixed;

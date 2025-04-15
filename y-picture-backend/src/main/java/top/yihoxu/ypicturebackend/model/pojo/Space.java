@@ -4,21 +4,20 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
 
-import lombok.Data;
-
 /**
- * 用户
- *
- * @TableName user
+ * 空间
+ * @TableName space
  */
-@TableName(value = "user")
+@TableName(value ="space")
 @Data
-public class User implements Serializable {
-    private static final long serialVersionUID = -2962078002860446901L;
+public class Space implements Serializable {
+
+    private static final long serialVersionUID = -1879699430053759293L;
     /**
      * id
      */
@@ -26,44 +25,49 @@ public class User implements Serializable {
     private Long id;
 
     /**
-     * 账号
+     * 空间名称
      */
-    private String userAccount;
+    private String spaceName;
 
     /**
-     * 密码
+     * 空间级别：0-普通版 1-专业版 2-旗舰版
      */
-    private String userPassword;
+    private Integer spaceLevel;
 
     /**
-     * 用户昵称
+     * 空间图片的最大总大小
      */
-    private String userName;
+    private Long maxSize;
 
     /**
-     * 用户头像
+     * 空间图片的最大数量
      */
-    private String userAvatar;
+    private Long maxCount;
 
     /**
-     * 用户简介
+     * 当前空间下图片的总大小
      */
-    private String userProfile;
+    private Long totalSize;
 
     /**
-     * 用户角色：user/admin
+     * 当前空间下的图片数量
      */
-    private String userRole;
+    private Long totalCount;
 
     /**
-     * 编辑时间
+     * 创建用户 id
      */
-    private Date editTime;
+    private Long userId;
 
     /**
      * 创建时间
      */
     private Date createTime;
+
+    /**
+     * 编辑时间
+     */
+    private Date editTime;
 
     /**
      * 更新时间
@@ -75,6 +79,4 @@ public class User implements Serializable {
      */
     @TableLogic
     private Integer isDelete;
-
-
 }
