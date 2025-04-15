@@ -28,7 +28,7 @@
 </template>
 <script lang="ts" setup>
 import { reactive, ref } from 'vue'
-import { uploadPictureByBatchUsingPost } from '@/api/fileController.ts'
+import { uploadPictureByBatchUsingPost } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import router from '@/router'
 

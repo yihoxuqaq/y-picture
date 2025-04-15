@@ -5,8 +5,8 @@
       <a-space>
         <a-button type="primary" href="/add_picture" target="_blank">+ 创建图片</a-button>
         <a-button type="primary" href="/add_picture/batch" target="_blank" ghost
-          >+ 批量创建图片</a-button
-        >
+          >+ 批量创建图片
+        </a-button>
       </a-space>
     </a-flex>
 
@@ -52,15 +52,6 @@
       @change="doTableChange"
       :scroll="{ x: 'max-content' }"
     >
-      <template #headerCell="{ column }">
-        <template v-if="column.key === 'name'">
-          <span>
-            <smile-outlined />
-            Name
-          </span>
-        </template>
-      </template>
-
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'url'">
           <a-image :src="record.url" :width="120" />
@@ -123,7 +114,6 @@
 </template>
 
 <script lang="ts" setup>
-import { SmileOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
@@ -131,7 +121,7 @@ import {
   deletePictureUsingPost,
   doPictureReviewUsingPost,
   listPictureByPageUsingPost,
-} from '@/api/fileController.ts'
+} from '@/api/pictureController.ts'
 import {
   PIC_REVIEW_STATUS_ENUM,
   PIC_REVIEW_STATUS_MAP,
@@ -173,7 +163,7 @@ const doDelete = async (id: string) => {
     message.error('删除失败')
   }
 }
-
+//审核图片
 const handleReview = async (record: API.Picture, reviewStatus: number) => {
   const reviewMessage =
     reviewStatus === PIC_REVIEW_STATUS_ENUM.PASS ? '管理员操作通过' : '管理员操作拒绝'
@@ -195,6 +185,7 @@ const handleReview = async (record: API.Picture, reviewStatus: number) => {
 const fetchData = async () => {
   const res = await listPictureByPageUsingPost({
     ...searchParams,
+    nullSpaceId: true,
   })
   if (res.data.data) {
     dataList.value = res.data.data.records ?? []

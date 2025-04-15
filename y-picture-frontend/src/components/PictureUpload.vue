@@ -1,27 +1,29 @@
 <template>
-    <div class="picture-upload">
-      <a-upload
-        list-type="picture-card"
-        :show-upload-list="false"
-        :custom-request="handleUpload"
-        :before-upload="beforeUpload"
-      >
-        <img v-if="picture?.url" :src="picture?.url" alt="avatar" />
-        <div v-else>
-          <loading-outlined v-if="loading"></loading-outlined>
-          <plus-outlined v-else></plus-outlined>
-          <div class="ant-upload-text">点击或拖拽上传图片</div>
-        </div>
-      </a-upload>
-    </div>
+  <div class="picture-upload">
+    <a-upload
+      list-type="picture-card"
+      :show-upload-list="false"
+      :custom-request="handleUpload"
+      :before-upload="beforeUpload"
+    >
+      <img v-if="picture?.url" :src="picture?.url" alt="avatar" />
+      <div v-else>
+        <LoadingOutlined v-if="loading"></LoadingOutlined>
+        <PlusOutlined v-else></PlusOutlined>
+        <div class="ant-upload-text">点击或拖拽上传图片</div>
+      </div>
+    </a-upload>
+  </div>
 </template>
 <script setup lang="ts">
 import { message, type UploadProps } from 'ant-design-vue'
+import { LoadingOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { ref } from 'vue'
-import { uploadPictureUsingPost } from '@/api/fileController.ts'
+import { uploadPictureUsingPost } from '@/api/pictureController.ts'
 
 interface Props {
   picture?: API.PictureVO
+  spaceId?: number
   onSuccess?: (newPicture: API.PictureVO) => void
 }
 
@@ -47,7 +49,8 @@ const loading = ref<boolean>(false)
 const handleUpload = async ({ file }: any) => {
   loading.value = true
   try {
-    const params = props.picture ? { id: props.picture.id } : {};
+    const params = props.picture ? { id: props.picture.id } : {}
+    params.spaceId = props.spaceId
     const res = await uploadPictureUsingPost(params, {}, file)
     if (res.data.code === 0 && res.data.data) {
       message.success('图片上传成功')
@@ -57,14 +60,11 @@ const handleUpload = async ({ file }: any) => {
       message.error('图片上传失败，' + res.data.message)
     }
   } catch (error) {
-    message.error('图片上传失败')
+    message.error('图片上传失败' + error.message)
   } finally {
     loading.value = false
   }
 }
-const params = props.picture ? { id: props.picture.id } : {};
-
-
 </script>
 
 <style scoped>
@@ -89,5 +89,4 @@ const params = props.picture ? { id: props.picture.id } : {};
   margin-top: 8px;
   color: #666;
 }
-
 </style>

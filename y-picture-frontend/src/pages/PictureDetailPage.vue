@@ -75,7 +75,7 @@
 </template>
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/fileController.ts'
+import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { downloadImage, formatSize } from '@/utils/index.ts'
 import { computed, onMounted, ref } from 'vue'
 import { useLoginUserStore } from '@/stores/userStore.ts'

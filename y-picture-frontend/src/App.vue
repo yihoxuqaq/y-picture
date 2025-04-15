@@ -1,10 +1,10 @@
 <template>
   <div id="app">
-    <Layout />
+    <BasicLayout />
   </div>
 </template>
 <script setup lang="ts">
-import Layout from '@/layouts/Layout.vue'
+import BasicLayout from '@/layouts/BasicLayout.vue'
 </script>
 
 <style scoped>

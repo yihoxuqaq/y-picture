@@ -1,11 +1,11 @@
 <template>
-  <div id="layout">
+  <div id="basicLayout">
     <a-layout style="min-height: 100vh">
       <a-layout-header class="layoutHead">
         <GlobalHead />
       </a-layout-header>
       <a-layout>
-        <GlobalSider />
+        <GlobalSider class="layoutSider" />
         <a-layout-content class="layoutContent">
           <RouterView />
         </a-layout-content>
@@ -20,17 +20,19 @@ import GlobalSider from '@/components/GlobalSider.vue'
 </script>
 
 <style scoped>
-#layout {
+#basicLayout {
 }
 
 .layoutHead {
   background-color: white;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
 }
 
 .layoutContent {
   background: linear-gradient(to right, #fefefe, #fff);
   margin-bottom: 28px;
-  padding: 20px;
+  padding: 26px;
 }
 
 .layoutFooter {
@@ -41,5 +43,16 @@ import GlobalSider from '@/components/GlobalSider.vue'
   left: 0;
   right: 0;
   text-align: center;
+}
+
+#basicLayout :deep(.ant-menu-root) {
+  border-bottom: none !important;
+  border-inline-end: none !important;
+}
+
+#basicLayout .layoutSider {
+  background: #fff;
+  padding-top: 20px;
+  border-right: 0.5px solid #eee;
 }
 </style>
