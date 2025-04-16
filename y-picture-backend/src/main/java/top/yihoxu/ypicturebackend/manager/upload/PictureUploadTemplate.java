@@ -64,7 +64,7 @@ public abstract class PictureUploadTemplate {
                     thumbnail = objectList.get(1);
                 }
                 //分装返回结果
-                return getUploadPictureResult(originalFilename, ciObject, thumbnail);
+                return getUploadPictureResult(originalFilename, ciObject, thumbnail, imageInfo);
             }
             //分装返回结果
             return getUploadPictureResult(imageInfo, originalFilename, file, uploadPath);
@@ -75,7 +75,7 @@ public abstract class PictureUploadTemplate {
         }
     }
 
-    private UploadPictureResult getUploadPictureResult(String originalFilename, CIObject ciObject, CIObject thumbnail) {
+    private UploadPictureResult getUploadPictureResult(String originalFilename, CIObject ciObject, CIObject thumbnail, ImageInfo imageInfo) {
         UploadPictureResult uploadPictureResult = new UploadPictureResult();
         int width = ciObject.getWidth();
         int height = ciObject.getHeight();
@@ -85,6 +85,7 @@ public abstract class PictureUploadTemplate {
         uploadPictureResult.setPicWidth(width);
         uploadPictureResult.setPicHeight(height);
         uploadPictureResult.setPicScale(scale);
+        uploadPictureResult.setPicColor(imageInfo.getAve());
         uploadPictureResult.setPicFormat(ciObject.getFormat());
         uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + ciObject.getKey());
         uploadPictureResult.setThumbnailUrl(cosClientConfig.getHost() + "/" + thumbnail.getKey());
@@ -100,6 +101,7 @@ public abstract class PictureUploadTemplate {
         uploadPictureResult.setPicSize(FileUtil.size(file));
         uploadPictureResult.setPicWidth(width);
         uploadPictureResult.setPicHeight(height);
+        uploadPictureResult.setPicColor(imageInfo.getAve());
         uploadPictureResult.setPicScale(scale);
         uploadPictureResult.setPicFormat(imageInfo.getFormat());
         uploadPictureResult.setUrl(cosClientConfig.getHost() + "/" + uploadPath);

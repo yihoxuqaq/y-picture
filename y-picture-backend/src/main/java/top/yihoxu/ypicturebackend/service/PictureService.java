@@ -15,6 +15,7 @@ import top.yihoxu.ypicturebackend.model.pojo.User;
 import top.yihoxu.ypicturebackend.model.vo.PictureVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 
 /**
@@ -50,6 +51,7 @@ public interface PictureService extends IService<Picture> {
 
     /**
      * 构建查询条件
+     *
      * @param pictureQueryRequest
      * @return
      */
@@ -83,33 +85,45 @@ public interface PictureService extends IService<Picture> {
 
 
     /**
-     *
      * @param pictureReviewRequest 审核参数
-     * @param loginUser 登录用户
+     * @param loginUser            登录用户
      */
-    void doPictureReview(PictureReviewRequest  pictureReviewRequest, User loginUser);
+    void doPictureReview(PictureReviewRequest pictureReviewRequest, User loginUser);
 
     /**
      * 上传更新编辑图片是自动填充审核参数
+     *
      * @param picture
      * @param loginUser
      */
-    void fillReviewParams(Picture picture,User loginUser);
+    void fillReviewParams(Picture picture, User loginUser);
 
 
     /**
      * 校验空间图片
+     *
      * @param picture
      * @param loginUser
      */
-    void checkPictureAuth(Picture picture,User loginUser);
+    void checkPictureAuth(Picture picture, User loginUser);
 
 
     /**
      * 删除图片
+     *
      * @param deleteRequest
      * @param loginUser
      * @return
      */
     boolean deletePictureById(DeleteRequest deleteRequest, User loginUser);
+
+    /**
+     * 颜色搜图
+     *
+     * @param spaceId   空间id
+     * @param picColor  图片主色
+     * @param loginUser 登陆登录用户
+     * @return 图片脱敏信息列表
+     */
+    List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
 }

@@ -17,6 +17,9 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.yihoxu.ypicturebackend.annotation.AuthCheck;
+import top.yihoxu.ypicturebackend.api.imagesearch.ImageSearchApiFacade;
+import top.yihoxu.ypicturebackend.api.imagesearch.model.ImageSearchResult;
+import top.yihoxu.ypicturebackend.api.imagesearch.model.SearchPictureByPictureRequest;
 import top.yihoxu.ypicturebackend.common.BaseResponse;
 import top.yihoxu.ypicturebackend.common.DeleteRequest;
 import top.yihoxu.ypicturebackend.common.ResultUtils;
@@ -92,7 +95,7 @@ public class PictureController {
      * @return
      */
     @PostMapping("/upload")
-    public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile,  PictureUploadRequest pictureUploadRequest,
+    public BaseResponse<PictureVO> uploadPicture(@RequestPart("file") MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest,
                                                  HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         PictureVO pictureVO = pictureService.uploadPicture(multipartFile, pictureUploadRequest, loginUser);
@@ -364,6 +367,34 @@ public class PictureController {
         return ResultUtils.success(true);
     }
 
+    /**
+     * 以图搜图
+     */
+    @PostMapping("/search/picture")
+    public BaseResponse<List<ImageSearchResult>> searchPictureByPicture(@RequestBody SearchPictureByPictureRequest searchPictureByPictureRequest) {
+        ThrowUtils.throwIf(searchPictureByPictureRequest == null, ErrorCode.PARAMS_ERROR);
+        Long pictureId = searchPictureByPictureRequest.getPictureId();
+        ThrowUtils.throwIf(pictureId == null || pictureId <= 0, ErrorCode.PARAMS_ERROR);
+        Picture oldPicture = pictureService.getById(pictureId);
+        ThrowUtils.throwIf(oldPicture == null, ErrorCode.NOT_FOUND_ERROR);
+        String url = oldPicture.getUrl() + "?imageMogr2/format/png";
+        List<ImageSearchResult> resultList = ImageSearchApiFacade.searchImage(url);
+        return ResultUtils.success(resultList);
+    }
+
+    /**
+     * 主色调搜索图片
+     */
+    @PostMapping("/search/pictureByColor")
+    public BaseResponse<List<PictureVO>> searchPictureByColor(@RequestBody SearchPictureByColorRequest
+                                                                      searchPictureByColorRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(searchPictureByColorRequest == null, ErrorCode.PARAMS_ERROR);
+        String picColor = searchPictureByColorRequest.getPicColor();
+        Long spaceId = searchPictureByColorRequest.getSpaceId();
+        User loginUser = userService.getLoginUser(request);
+        List<PictureVO> pictureVOS = pictureService.searchPictureByColor(spaceId, picColor, loginUser);
+        return ResultUtils.success(pictureVOS);
+    }
 
 
 }

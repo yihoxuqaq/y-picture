@@ -33,14 +33,15 @@ import top.yihoxu.ypicturebackend.model.vo.UserVO;
 import top.yihoxu.ypicturebackend.service.PictureService;
 import top.yihoxu.ypicturebackend.service.SpaceService;
 import top.yihoxu.ypicturebackend.service.UserService;
+import top.yihoxu.ypicturebackend.utils.ColorSimilarUtils;
+import top.yihoxu.ypicturebackend.utils.HexColorExpander;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.awt.*;
 import java.io.IOException;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -146,6 +147,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         picture.setPicHeight(uploadPictureResult.getPicHeight());
         picture.setPicScale(uploadPictureResult.getPicScale());
         picture.setPicFormat(uploadPictureResult.getPicFormat());
+        String color = uploadPictureResult.getPicColor();
+        picture.setPicColor(HexColorExpander.expandHexColor(color));
         picture.setUserId(loginUser.getId());
         //补充审核参数
         fillReviewParams(picture, loginUser);
@@ -160,7 +163,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         transactionTemplate.execute(status -> {
             boolean result = this.save(picture);
             ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
-            if (finalSpaceId!=null){
+            if (finalSpaceId != null) {
                 boolean update = spaceService.lambdaUpdate()
                         .eq(Space::getId, finalSpaceId)
                         .setSql("totalCount = totalCount + 1")
@@ -254,6 +257,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         String reviewMessage = pictureQueryRequest.getReviewMessage();
         Long reviewerId = pictureQueryRequest.getReviewerId();
         boolean nullSpaceId = pictureQueryRequest.isNullSpaceId();
+        Date startEditTime = pictureQueryRequest.getStartEditTime();
+        Date endEditTime = pictureQueryRequest.getEndEditTime();
 
         // 从多字段中搜索
         if (StrUtil.isNotBlank(searchText)) {
@@ -278,6 +283,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.eq(ObjUtil.isNotEmpty(picHeight), "picHeight", picHeight);
         queryWrapper.eq(ObjUtil.isNotEmpty(picSize), "picSize", picSize);
         queryWrapper.eq(ObjUtil.isNotEmpty(picScale), "picScale", picScale);
+        queryWrapper.ge(ObjUtil.isNotEmpty(startEditTime), "editTime", startEditTime);
+        queryWrapper.lt(ObjUtil.isNotEmpty(endEditTime), "editTime", endEditTime);
         // JSON 数组查询
         if (CollUtil.isNotEmpty(tags)) {
             for (String tag : tags) {
@@ -421,12 +428,49 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             boolean update = spaceService.lambdaUpdate()
                     .eq(Space::getId, oldPicture.getSpaceId())
                     .setSql("totalCount = totalCount - 1")
-                    .setSql("totalSize = totalSize - "+ oldPicture.getPicSize())
+                    .setSql("totalSize = totalSize - " + oldPicture.getPicSize())
                     .update();
             ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "空间额度更新失败");
             return update;
         });
         return true;
+    }
+
+    @Override
+    public List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser) {
+        //1、校验参数
+        ThrowUtils.throwIf(spaceId == null || StrUtil.isBlank(picColor), ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
+        //2、空间权限校验
+        Space space = spaceService.getById(spaceId);
+        if (!space.getUserId().equals(loginUser.getId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间访问权限");
+        }
+        //3.查询空间下所有图片（必须有主色调）
+        List<Picture> pictureList = this.lambdaQuery()
+                .eq(Picture::getSpaceId, space.getId())
+                .isNotNull(Picture::getPicColor)
+                .list();
+        //如果没有图片，直接返回空列表
+        if (CollUtil.isEmpty(pictureList)) {
+            return Collections.emptyList();
+        }
+        //将目标颜色转为Color对象
+        Color targetColor = Color.decode(picColor);
+        List<Picture> pictures = pictureList.stream()
+                .sorted(Comparator.comparingDouble(picture -> {
+                    //提取图片主色调
+                    String hexColor = picture.getPicColor();
+                    if (StrUtil.isBlank(hexColor)) {
+                        return Double.MAX_VALUE;
+                    }
+                    Color color = Color.decode(hexColor);
+                    //越大越相似
+                    return -ColorSimilarUtils.calculateSimilarity(targetColor, color);
+                })).limit(12)
+                .collect(Collectors.toList());
+        return pictures.stream()
+                .map(PictureVO::objToVo).collect(Collectors.toList());
     }
 
 
