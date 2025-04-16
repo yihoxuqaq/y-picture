@@ -46,6 +46,19 @@
             <a-descriptions-item label="大小">
               {{ formatSize(picture.picSize) }}
             </a-descriptions-item>
+            <a-descriptions-item label="主色调">
+              <a-space>
+                {{ picture.picColor ?? '-' }}
+                <div
+                  v-if="picture.picColor"
+                  :style="{
+                    backgroundColor: toHexColor(picture.picColor),
+                    width: '16px',
+                    height: '16px',
+                  }"
+                />
+              </a-space>
+            </a-descriptions-item>
           </a-descriptions>
           <a-space wrap>
             <a-button v-if="canEdit" type="default" @click="doEdit">
@@ -66,7 +79,6 @@
                 <DownloadOutlined />
               </template>
             </a-button>
-
           </a-space>
         </a-card>
       </a-col>
@@ -76,7 +88,7 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
-import { downloadImage, formatSize } from '@/utils/index.ts'
+import { downloadImage, formatSize, toHexColor } from '@/utils/index.ts'
 import { computed, onMounted, ref } from 'vue'
 import { useLoginUserStore } from '@/stores/userStore.ts'
 import router from '@/router'
@@ -134,7 +146,6 @@ const doDelete = async () => {
 const doDownload = () => {
   downloadImage(picture.value.url)
 }
-
 
 onMounted(() => {
   fetchPictureDetail()

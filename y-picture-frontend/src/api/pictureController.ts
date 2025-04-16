@@ -122,61 +122,40 @@ export async function doPictureReviewUsingPost(
   })
 }
 
+/** searchPictureByPicture POST /api/cos/search/picture */
+export async function searchPictureByPictureUsingPost(
+  body: API.SearchPictureByPictureRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseListImageSearchResult_>('/api/cos/search/picture', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** searchPictureByColor POST /api/cos/search/pictureByColor */
+export async function searchPictureByColorUsingPost(
+  body: API.SearchPictureByColorRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseListPictureVO_>('/api/cos/search/pictureByColor', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
 /** listPictureTagCategory GET /api/cos/tag_category */
 export async function listPictureTagCategoryUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponsePictureTagCategory_>('/api/cos/tag_category', {
     method: 'GET',
-    ...(options || {}),
-  })
-}
-
-/** testDownloadFile GET /api/cos/test/download/ */
-export async function testDownloadFileUsingGet(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.testDownloadFileUsingGETParams,
-  options?: { [key: string]: any }
-) {
-  return request<any>('/api/cos/test/download/', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  })
-}
-
-/** testUploadFile POST /api/cos/test/upload */
-export async function testUploadFileUsingPost(
-  body: {},
-  file?: File,
-  options?: { [key: string]: any }
-) {
-  const formData = new FormData()
-
-  if (file) {
-    formData.append('file', file)
-  }
-
-  Object.keys(body).forEach((ele) => {
-    const item = (body as any)[ele]
-
-    if (item !== undefined && item !== null) {
-      if (typeof item === 'object' && !(item instanceof File)) {
-        if (item instanceof Array) {
-          item.forEach((f) => formData.append(ele, f || ''))
-        } else {
-          formData.append(ele, JSON.stringify(item))
-        }
-      } else {
-        formData.append(ele, item)
-      }
-    }
-  })
-
-  return request<API.BaseResponseString_>('/api/cos/test/upload', {
-    method: 'POST',
-    data: formData,
-    requestType: 'form',
     ...(options || {}),
   })
 }

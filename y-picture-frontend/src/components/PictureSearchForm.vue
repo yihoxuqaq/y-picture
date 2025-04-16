@@ -1,15 +1,5 @@
 <template>
-  <div id="pictureManagePage">
-    <a-flex justify="space-between">
-      <h2>图片管理</h2>
-      <a-space>
-        <a-button type="primary" href="/add_picture" target="_blank">+ 创建图片</a-button>
-        <a-button type="primary" href="/add_picture/batch" target="_blank" ghost
-          >+ 批量创建图片
-        </a-button>
-      </a-space>
-    </a-flex>
-
+  <div id="pictureSearchForm">
     <a-form layout="inline" :model="searchParams" @finish="doSearch">
       <a-form-item label="关键词" name="searchText">
         <a-input
@@ -30,243 +20,107 @@
           allow-clear
         />
       </a-form-item>
-      <a-form-item label="审核状态" name="reviewStatus">
-        <a-select
-          v-model:value="searchParams.reviewStatus"
-          :options="PIC_REVIEW_STATUS_OPTIONS"
-          placeholder="请输入审核状态"
-          style="min-width: 180px"
+      <a-form-item label="图片名称" name="name">
+        <a-input v-model:value="searchParams.name" placeholder="请输入图片名称" allow-clear />
+      </a-form-item>
+      <a-form-item label="图片简介" name="introduction">
+        <a-input
+          v-model:value="searchParams.introduction"
+          placeholder="请输入图片简介"
           allow-clear
         />
       </a-form-item>
-
+      <a-form-item label="图片长度" name="picHeight">
+        <a-input-number
+          v-model:value="searchParams.picHeight"
+          placeholder="请输入图片长度"
+          allow-clear
+        />
+      </a-form-item>
+      <a-form-item label="图片宽度" name="picWidth">
+        <a-input-number
+          v-model:value="searchParams.picWidth"
+          placeholder="请输入图片宽度"
+          allow-clear
+        />
+      </a-form-item>
+      <a-form-item label="图片格式" name="picFormat">
+        <a-input v-model:value="searchParams.picFormat" placeholder="请输入图片格式" allow-clear />
+      </a-form-item>
+      <a-form-item label="图片编辑时间">
+        <a-range-picker
+          style="width: 400px"
+          v-model:value="timeRange"
+          :placeholder="[`开始编辑时间`, `结束编辑时间`]"
+          show-time
+          format="YYYY/MM/DD HH:mm:ss"
+          :presets="rangePresets"
+          @change="onRangeChange"
+        />
+      </a-form-item>
       <a-form-item>
-        <a-button type="primary" html-type="submit">搜索</a-button>
+        <a-space>
+          <a-button type="primary" html-type="submit">搜索</a-button>
+          <a-button html-type="reset" @click="doClear">重置</a-button>
+        </a-space>
       </a-form-item>
     </a-form>
-
-    <a-table
-      :columns="columns"
-      :data-source="dataList"
-      :pagination="pagination"
-      @change="doTableChange"
-      :scroll="{ x: 'max-content' }"
-    >
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.dataIndex === 'url'">
-          <a-image :src="record.url" :width="120" />
-        </template>
-        <!-- 标签 -->
-        <template v-if="column.dataIndex === 'tags'">
-          <a-space wrap>
-            <a-tag v-for="tag in JSON.parse(record.tags || '[]')" :key="tag">{{ tag }}</a-tag>
-          </a-space>
-        </template>
-        <!-- 图片信息 -->
-        <template v-if="column.dataIndex === 'picInfo'">
-          <div>格式：{{ record.picFormat }}</div>
-          <div>宽度：{{ record.picWidth }}</div>
-          <div>高度：{{ record.picHeight }}</div>
-          <div>宽高比：{{ record.picScale }}</div>
-          <div>大小：{{ (record.picSize / 1024).toFixed(2) }}KB</div>
-        </template>
-        <!-- 审核信息 -->
-        <template v-if="column.dataIndex === 'review'">
-          <div>审核状态：{{ PIC_REVIEW_STATUS_MAP[record.reviewStatus] }}</div>
-          <div>审核信息：{{ record.reviewMessage }}</div>
-          <div v-if="record.reviewTime">
-            审核时间：{{ dayjs(record.reviewTime).format('YYYY-MM-DD HH:mm:ss') }}
-          </div>
-          <div>审核人：{{ record.reviewerId }}</div>
-        </template>
-        <template v-else-if="column.dataIndex === 'createTime'">
-          {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
-        </template>
-        <template v-else-if="column.dataIndex === 'editTime'">
-          {{ dayjs(record.editTime).format('YYYY-MM-DD HH:mm:ss') }}
-        </template>
-        <template v-else-if="column.key === 'action'">
-          <a-space wrap>
-            <a-button
-              v-if="record.reviewStatus !== PIC_REVIEW_STATUS_ENUM.PASS"
-              type="link"
-              @click="handleReview(record, PIC_REVIEW_STATUS_ENUM.PASS)"
-            >
-              通过
-            </a-button>
-            <a-button
-              v-if="record.reviewStatus !== PIC_REVIEW_STATUS_ENUM.REJECT"
-              type="link"
-              danger
-              @click="handleReview(record, PIC_REVIEW_STATUS_ENUM.REJECT)"
-            >
-              拒绝
-            </a-button>
-            <a-button type="link" :href="`/add_picture?id=${record.id}`" target="_blank"
-              >编辑
-            </a-button>
-            <a-button type="link" danger @click="doDelete(record.id)">删除</a-button>
-          </a-space>
-        </template>
-      </template>
-    </a-table>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { message } from 'ant-design-vue'
+import { reactive, ref } from 'vue'
 import dayjs from 'dayjs'
-import {
-  deletePictureUsingPost,
-  doPictureReviewUsingPost,
-  listPictureByPageUsingPost,
-} from '@/api/pictureController.ts'
-import {
-  PIC_REVIEW_STATUS_ENUM,
-  PIC_REVIEW_STATUS_MAP,
-  PIC_REVIEW_STATUS_OPTIONS,
-} from '@/constants/picture.ts'
-// 数据
-const dataList = ref([])
-const total = ref(0)
+
+const timeRange = ref<[]>([])
+
+interface Props {
+  onSearch: (searchParams: API.PictureQueryRequest) => void
+}
+
+const props = defineProps<Props>()
 
 // 搜索条件
-const searchParams = reactive<API.PictureQueryRequest>({
-  current: 1,
-  pageSize: 10,
-  sortField: 'createTime',
-  sortOrder: 'descend',
-})
+const searchParams = reactive<API.PictureQueryRequest>({})
 
-// 分页参数
-const pagination = computed(() => {
-  return {
-    current: searchParams.current ?? 1,
-    pageSize: searchParams.pageSize ?? 10,
-    total: total.value,
-    showSizeChanger: true,
-    showTotal: (total) => `共 ${total} 条`,
-  }
-})
-// 删除数据
-const doDelete = async (id: string) => {
-  if (!id) {
-    return
-  }
-  const res = await deletePictureUsingPost({ id })
-  if (res.data.code === 0) {
-    message.success('删除成功')
-    // 刷新数据
-    fetchData()
-  } else {
-    message.error('删除失败')
-  }
-}
-//审核图片
-const handleReview = async (record: API.Picture, reviewStatus: number) => {
-  const reviewMessage =
-    reviewStatus === PIC_REVIEW_STATUS_ENUM.PASS ? '管理员操作通过' : '管理员操作拒绝'
-  const res = await doPictureReviewUsingPost({
-    id: record.id,
-    reviewStatus,
-    reviewMessage,
+//清理
+const doClear = () => {
+  //重置所有查询选项
+  Object.keys(searchParams).forEach((key) => {
+    searchParams[key] = undefined
   })
-  if (res.data.code === 0) {
-    message.success('审核操作成功')
-    // 重新获取列表
-    fetchData()
-  } else {
-    message.error('审核操作失败，' + res.data.message)
-  }
+  //日期单独清理
+  timeRange.value = []
+  props.onSearch(searchParams)
 }
-
-// 获取数据
-const fetchData = async () => {
-  const res = await listPictureByPageUsingPost({
-    ...searchParams,
-    nullSpaceId: true,
-  })
-  if (res.data.data) {
-    dataList.value = res.data.data.records ?? []
-    total.value = res.data.data.total ?? 0
-  } else {
-    message.error('获取数据失败，' + res.data.message)
-  }
-}
-
-// 页面加载时请求一次
-onMounted(() => {
-  fetchData()
-})
-
-// 获取数据
 const doSearch = () => {
-  // 重置搜索条件
-  searchParams.current = 1
-  fetchData()
+  props.onSearch(searchParams)
 }
 
-// 表格变化处理
-const doTableChange = (page: any) => {
-  searchParams.current = page.current
-  searchParams.pageSize = page.pageSize
-  fetchData()
+const onRangeChange = (dates: [], dateStrings: string[]) => {
+  if (dates.length >= 2) {
+    searchParams.startEditTime = dates[0].toDate()
+    searchParams.endEditTime = dates[1].toDate()
+  } else {
+    searchParams.startEditTime = undefined
+    searchParams.endEditTime = undefined
+  }
 }
 
-const columns = [
-  {
-    title: 'id',
-    dataIndex: 'id',
-    width: 80,
-  },
-  {
-    title: '图片',
-    dataIndex: 'url',
-  },
-  {
-    title: '名称',
-    dataIndex: 'name',
-  },
-  {
-    title: '简介',
-    dataIndex: 'introduction',
-    ellipsis: true,
-  },
-  {
-    title: '类型',
-    dataIndex: 'category',
-  },
-  {
-    title: '标签',
-    dataIndex: 'tags',
-  },
-  {
-    title: '图片信息',
-    dataIndex: 'picInfo',
-  },
-  {
-    title: '审核信息',
-    dataIndex: 'review',
-  },
-  {
-    title: '用户 id',
-    dataIndex: 'userId',
-    width: 80,
-  },
-  {
-    title: '创建时间',
-    dataIndex: 'createTime',
-  },
-  {
-    title: '编辑时间',
-    dataIndex: 'editTime',
-  },
-  {
-    title: '操作',
-    key: 'action',
-  },
-]
+//预设时间
+const rangePresets = ref([
+  { label: '最近7天', value: [dayjs().add(-7, 'd'), dayjs()] },
+  { label: '最近14天', value: [dayjs().add(-14, 'd'), dayjs()] },
+  { label: '最近30天', value: [dayjs().add(-30, 'd'), dayjs()] },
+  { label: '最近90天', value: [dayjs().add(-90, 'd'), dayjs()] },
+])
 </script>
 
-<style scoped></style>
+<style scoped>
+#pictureSearchForm {
+}
+
+#pictureSearchForm .ant-form-item {
+  margin-top: 16px;
+}
+</style>

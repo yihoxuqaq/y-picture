@@ -1,5 +1,5 @@
 <template>
-  <div id="PictureManagePage">
+  <div id="pictureManagePage">
     <a-flex justify="space-between">
       <h2>图片管理</h2>
       <a-space>
