@@ -7,6 +7,8 @@
         <a-button type="primary" :href="`/add_picture?spaceId=${id}`" target="_blank"
           >+ 上传图片
         </a-button>
+        <a-button type="primary" @click="doOpenModal">批量管理图片</a-button>
+        <PictureEditBatchModal ref="pictureEditBatchModalRef" :pictureId="dataList" :spaceId="id"  :onSuccess="fetchData"/>
         <a-tooltip :title="`占用空间${formatSize(space.totalSize)}/${formatSize(space.maxSize)}`">
           <a-progress
             :size="42"
@@ -46,6 +48,7 @@ import { formatSize } from '@/utils'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
 import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
+import PictureEditBatchModal from '@/components/PictureEditBatchModal.vue'
 
 const props = defineProps<{
   id: string | number
@@ -130,6 +133,12 @@ const onColorChange = async (color: string) => {
     total.value = data.length
   } else {
     message.error('获取数据失败，' + res.data.message)
+  }
+}
+const pictureEditBatchModalRef = ref()
+const doOpenModal = () => {
+  if (pictureEditBatchModalRef.value) {
+    pictureEditBatchModalRef.value.openModal()
   }
 }
 
