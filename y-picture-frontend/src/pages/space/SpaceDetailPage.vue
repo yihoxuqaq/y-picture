@@ -34,16 +34,18 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { getSpaceVoByIdUsingGet } from '@/api/spaceController.ts'
 import PictureList from '@/components/PictureList.vue'
-import { listPictureVoByPageUsingPost, searchPictureByColorUsingPost } from '@/api/pictureController.ts'
+import {
+  listPictureVoByPageUsingPost,
+  searchPictureByColorUsingPost,
+} from '@/api/pictureController.ts'
 import { formatSize } from '@/utils'
 import PictureSearchForm from '@/components/PictureSearchForm.vue'
-import { ColorPicker } from "vue3-colorpicker";
-import "vue3-colorpicker/style.css";
-
+import { ColorPicker } from 'vue3-colorpicker'
+import 'vue3-colorpicker/style.css'
 
 const props = defineProps<{
   id: string | number
@@ -123,14 +125,13 @@ const onColorChange = async (color: string) => {
     spaceId: props.id,
   })
   if (res.data.code === 0 && res.data.data) {
-    const data = res.data.data ?? [];
-    dataList.value = data;
-    total.value = data.length;
+    const data = res.data.data ?? []
+    dataList.value = data
+    total.value = data.length
   } else {
     message.error('获取数据失败，' + res.data.message)
   }
 }
-
 
 // 页面加载时请求一次
 onMounted(() => {
