@@ -5,10 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.springframework.web.multipart.MultipartFile;
 import top.yihoxu.ypicturebackend.common.DeleteRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadByBatchRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadRequest;
+import top.yihoxu.ypicturebackend.model.dto.picture.*;
 import top.yihoxu.ypicturebackend.model.dto.user.UserQueryRequest;
 import top.yihoxu.ypicturebackend.model.pojo.Picture;
 import top.yihoxu.ypicturebackend.model.pojo.User;
@@ -126,4 +123,13 @@ public interface PictureService extends IService<Picture> {
      * @return 图片脱敏信息列表
      */
     List<PictureVO> searchPictureByColor(Long spaceId, String picColor, User loginUser);
+
+
+    /**
+     * 批量编辑图片
+     * @param pictureEditByBatchRequest 批量编辑图片请求参数
+     * @param loginUser 登录用户
+     * @return
+     */
+    void pictureEditByBatch(PictureEditByBatchRequest pictureEditByBatchRequest, User loginUser);
 }

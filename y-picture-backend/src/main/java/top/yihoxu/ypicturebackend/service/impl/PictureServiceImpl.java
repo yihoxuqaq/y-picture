@@ -4,6 +4,7 @@ package top.yihoxu.ypicturebackend.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -471,6 +472,69 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                 .collect(Collectors.toList());
         return pictures.stream()
                 .map(PictureVO::objToVo).collect(Collectors.toList());
+    }
+
+    @Override
+    public void pictureEditByBatch(PictureEditByBatchRequest pictureEditByBatchRequest, User loginUser ) {
+        //1、校验参数
+        Long spaceId = pictureEditByBatchRequest.getSpaceId();
+        ThrowUtils.throwIf(spaceId<0,ErrorCode.PARAMS_ERROR);
+        List<Long> pictureIdList = pictureEditByBatchRequest.getPictureIdList();
+        ThrowUtils.throwIf(CollUtil.isEmpty(pictureIdList),ErrorCode.PARAMS_ERROR);
+        String category = pictureEditByBatchRequest.getCategory();
+        List<String> tagList = pictureEditByBatchRequest.getTagList();
+        Space space = spaceService.getById(spaceId);
+        //空间必须所属登录用户
+        if (!space.getUserId().equals(loginUser.getId())){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"没有权限");
+        }
+        List<Picture> pictureList = this.lambdaQuery()
+                .select(Picture::getId, Picture::getSpaceId)
+                .eq(Picture::getSpaceId, spaceId)
+                .in(Picture::getId, pictureIdList)
+                .list();
+        if (CollUtil.isEmpty(pictureList)){
+            return ;
+        }
+
+        pictureList.forEach(picture -> {
+            //图片分类不为空才设置
+            if (StrUtil.isNotBlank(category)){
+                picture.setCategory(category);
+            }
+            //标签列表为空才设置
+            if (CollUtil.isNotEmpty(tagList)){
+                picture.setTags(JSONUtil.toJsonStr(tagList));
+            }
+
+        });
+        // 批量重命名
+        String nameRule = pictureEditByBatchRequest.getNameRule();
+        fillPictureWithNameRule(pictureList, nameRule);
+
+        boolean result = this.updateBatchById(pictureList);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+    }
+    /**
+     * nameRule 格式：图片{序号}
+     *
+     * @param pictureList
+     * @param nameRule
+     */
+    private void fillPictureWithNameRule(List<Picture> pictureList, String nameRule) {
+        if (CollUtil.isEmpty(pictureList) || StrUtil.isBlank(nameRule)) {
+            return;
+        }
+        long count = 1;
+        try {
+            for (Picture picture : pictureList) {
+                String pictureName = nameRule.replaceAll("\\{序号}", String.valueOf(count++));
+                picture.setName(pictureName);
+            }
+        } catch (Exception e) {
+            log.error("名称解析错误", e);
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "名称解析错误");
+        }
     }
 
 
