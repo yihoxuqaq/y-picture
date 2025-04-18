@@ -15,6 +15,18 @@
         <PictureUploadUrl :picture="picture" :spaceId="spaceId" :onSuccess="onSuccess" />
       </a-tab-pane>
     </a-tabs>
+    <!--    编辑图片-->
+    <div class="btnCropper">
+      <a-button type="primary" v-if="picture" @click="openPictureCropper">编辑图片</a-button>
+      <PictureCropper
+        :pictureUrl="picture?.url"
+        ref="pictureCropperRef"
+        :picture="picture"
+        :onSuccess="onCropperSuccess"
+        :spaceId="spaceId"
+      />
+    </div>
+    <!--    图片表单-->
     <a-form v-if="picture" layout="vertical" :model="pictureForm" @finish="handleSubmit">
       <a-form-item label="名称" name="name">
         <a-input v-model:value="pictureForm.name" placeholder="请输入名称" />
@@ -62,6 +74,7 @@ import {
 } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import PictureUploadUrl from '@/components/PictureUploadUrl.vue'
+import PictureCropper from '@/components/PictureCropper.vue'
 
 const picture = ref<API.PictureVO>()
 const onSuccess = (newPicture: API.PictureVO) => {
@@ -72,7 +85,7 @@ const onSuccess = (newPicture: API.PictureVO) => {
 const pictureForm = reactive<API.PictureEditRequest>({})
 const router = useRouter()
 const activeKey = ref<'file' | 'url'>('file')
-
+const pictureCropperRef = ref()
 // 空间 id
 const spaceId = computed(() => {
   return route.query?.spaceId
@@ -146,7 +159,12 @@ const getOldPicture = async () => {
     }
   }
 }
-
+//打开编辑图片弹框
+const openPictureCropper = () => {
+  if (pictureCropperRef.value) {
+    pictureCropperRef.value.openModal()
+  }
+}
 onMounted(() => {
   getOldPicture()
 })
@@ -154,11 +172,19 @@ onMounted(() => {
 onMounted(() => {
   getTagCategoryOptions()
 })
+const onCropperSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
 </script>
 
 <style scoped>
 #addPicturePage {
   max-width: 720px;
   margin: 0 auto;
+}
+
+#addPicturePage .btnCropper {
+  text-align: center;
+  margin: 16px 0;
 }
 </style>
