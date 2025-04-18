@@ -17,13 +17,23 @@
     </a-tabs>
     <!--    编辑图片-->
     <div class="btnCropper">
-      <a-button type="primary" v-if="picture" @click="openPictureCropper">编辑图片</a-button>
+      <a-space size="middle">
+        <a-button type="primary" v-if="picture" @click="openPictureCropper">编辑图片</a-button>
+        <a-button type="primary" v-if="picture" @click="openPicturePainting">ai扩图</a-button>
+      </a-space>
       <PictureCropper
         :pictureUrl="picture?.url"
         ref="pictureCropperRef"
         :picture="picture"
         :onSuccess="onCropperSuccess"
         :spaceId="spaceId"
+      />
+      <PicturePainting
+        ref="picturePaintingRef"
+        :picture-url="picture?.url"
+        :picture="picture"
+        :space-id="spaceId"
+        :onSuccess="onPaintingSuccess"
       />
     </div>
     <!--    图片表单-->
@@ -75,6 +85,7 @@ import {
 import { message } from 'ant-design-vue'
 import PictureUploadUrl from '@/components/PictureUploadUrl.vue'
 import PictureCropper from '@/components/PictureCropper.vue'
+import PicturePainting from '@/components/PicturePainting.vue'
 
 const picture = ref<API.PictureVO>()
 const onSuccess = (newPicture: API.PictureVO) => {
@@ -140,6 +151,7 @@ const getTagCategoryOptions = async () => {
   }
 }
 const route = useRoute()
+const picturePaintingRef = ref()
 
 // 获取老数据
 const getOldPicture = async () => {
@@ -165,6 +177,13 @@ const openPictureCropper = () => {
     pictureCropperRef.value.openModal()
   }
 }
+
+//打开编辑图片弹框
+const openPicturePainting = () => {
+  if (picturePaintingRef.value) {
+    picturePaintingRef.value.openModal()
+  }
+}
 onMounted(() => {
   getOldPicture()
 })
@@ -172,6 +191,10 @@ onMounted(() => {
 onMounted(() => {
   getTagCategoryOptions()
 })
+
+const onPaintingSuccess = (newPicture: API.PictureVO) => {
+  picture.value = newPicture
+}
 const onCropperSuccess = (newPicture: API.PictureVO) => {
   picture.value = newPicture
 }

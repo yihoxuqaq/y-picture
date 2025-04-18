@@ -3,7 +3,7 @@ import HomePage from '@/pages/HomePage.vue'
 import UserRegisterPage from '@/pages/user/UserRegisterPage.vue'
 import UserLoginPage from '@/pages/user/UserLoginPage.vue'
 import UserManagePage from '@/pages/admin/UserManagePage.vue'
-import AddPicturePagePage from '@/pages/AddPicturePagePage.vue'
+import AddPicturePage from '@/pages/AddPicturePage.vue'
 import PictureManagePage from '@/pages/admin/PictureManagePage.vue'
 import PictureDetailPage from '@/pages/PictureDetailPage.vue'
 import AddPictureBatchPage from '@/pages/admin/AddPictureBatchPage.vue'
@@ -39,7 +39,7 @@ const router = createRouter({
     {
       path: '/add_picture',
       name: '创建图片',
-      component: AddPicturePagePage,
+      component: AddPicturePage,
     },
     {
       path: '/admin/pictureManage',
