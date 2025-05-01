@@ -1,7 +1,5 @@
 <template>
-  <div id="welcomeView">
-
-  </div>
+  <div id="welcomeView">首页</div>
 </template>
 <script lang="ts" setup></script>
 

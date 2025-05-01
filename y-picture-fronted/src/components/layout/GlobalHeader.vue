@@ -20,10 +20,24 @@
       <a-col flex="120px">
         <div class="user-login-status">
           <div v-if="loginUserStore.loginUser.id">
-            {{ loginUserStore.loginUser.userName ?? '无名' }}
+            <a-dropdown>
+              <ASpace>
+                <a-avatar :src="loginUserStore.loginUser.userAvatar" />
+                {{ loginUserStore.loginUser.userName ?? '游客' }}
+              </ASpace>
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item @click="doLogout">
+                    <LogoutOutlined />
+                    退出登录
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </div>
+
           <div v-else>
-            <a-button type="primary" href="/user/login">登录</a-button>
+            <a-button type="primary" href="/loginUser">登录</a-button>
           </div>
         </div>
       </a-col>
@@ -31,28 +45,14 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { h, ref } from 'vue'
-import { PictureOutlined, SearchOutlined } from '@ant-design/icons-vue'
-import { MenuProps } from 'ant-design-vue'
+import { computed, h, ref } from 'vue'
+import { PictureOutlined, SearchOutlined, LogoutOutlined } from '@ant-design/icons-vue'
+import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores'
+import { logoutUserUsingPost } from '@/api/userController.ts'
 
 const loginUserStore = useLoginUserStore()
-
-const items = ref<MenuProps['items']>([
-  {
-    key: '/',
-    icon: () => h(PictureOutlined),
-    label: '公共图库',
-    title: '主页',
-  },
-  {
-    key: 'others',
-    label: h('a', { href: 'https://github.com/yihoxuqaq/y-picture', target: '_blank' }, '关于'),
-    icon: () => h(SearchOutlined),
-    title: '关于',
-  },
-])
 
 const router = useRouter()
 // 路由跳转事件
@@ -67,6 +67,56 @@ const current = ref<string[]>([])
 router.afterEach((to, from, next) => {
   current.value = [to.path]
 })
+// 用户注销
+const doLogout = async () => {
+  const res = await logoutUserUsingPost()
+  console.log(res)
+  if (res.data.code === 0) {
+    loginUserStore.setLoginUser({
+      userName: '未登录',
+    })
+    message.success('退出登录成功')
+    await router.push('/loginUser')
+  } else {
+    message.error('退出登录失败，' + res.data.message)
+  }
+}
+//过滤菜单
+const filterItems = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+    if (menu?.key.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser || loginUser.userRole !== 'admin') {
+        return false
+      }
+    }
+    return true
+  })
+}
+//展示菜单数据
+const items = computed<MenuProps['items']>(() => filterItems(originItems))
+
+//菜单列表
+const originItems = [
+  {
+    key: '/',
+    icon: () => h(PictureOutlined),
+    label: '公共图库',
+    title: '主页',
+  },
+  {
+    key: '/admin/userManage',
+    icon: () => h(PictureOutlined),
+    label: '用户管理',
+    title: '用户管理',
+  },
+  {
+    key: 'others',
+    label: h('a', { href: 'https://github.com/yihoxuqaq/y-picture', target: '_blank' }, '关于'),
+    icon: () => h(SearchOutlined),
+    title: '关于',
+  },
+]
 </script>
 <style scoped>
 .title-bar {
