@@ -29,10 +29,10 @@ myAxios.interceptors.response.use(
       // 不是获取用户信息的请求，并且用户目前不是已经在用户登录页面，则跳转到登录页面
       if (
         !response.request.responseURL.includes('user/get/login') &&
-        !window.location.pathname.includes('/user/login')
+        !window.location.pathname.includes('/loginUser')
       ) {
         message.warning('请先登录')
-        window.location.href = `/user/login?redirect=${window.location.href}`
+        window.location.href = `/loginUser?redirect=${window.location.href}`
       }
     }
     return response

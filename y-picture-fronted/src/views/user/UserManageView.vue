@@ -89,7 +89,7 @@ const doDelete = async (id) => {
     message.error('删除失败' + res.data.message)
   }
 }
-//冲洗加载数据
+//重新加载数据
 const resetForm = () => {
   searchParams.userAccount = ''
   searchParams.userName = ''
