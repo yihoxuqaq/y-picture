@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * @author yihoxu
  * @date 2025/4/29  22:45
- * @description 用户注册请求体
+ * @description 用户注册请求
  */
 @Data
 public class UserRegisterRequest implements Serializable {

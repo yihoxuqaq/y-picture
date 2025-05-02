@@ -68,4 +68,13 @@ public interface UserService extends IService<User> {
      * @return
      */
     List<UserVO> listUsersVO(List<User> userList);
+
+    /**
+     * 是否为管理员
+     *
+     * @param user
+     * @return
+     */
+    boolean isAdmin(User user);
+
 }
