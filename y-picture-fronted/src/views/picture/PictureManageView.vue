@@ -26,6 +26,7 @@
       :data-source="dataList"
       :pagination="pagination"
       @change="doTableChange"
+      :scroll="{ x: 'max-content' }"
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.dataIndex === 'url'">
@@ -44,6 +45,13 @@
           <div>宽高比：{{ record.picScale }}</div>
           <div>大小：{{ (record.picSize / 1024).toFixed(2) }}KB</div>
         </template>
+        <!-- 审核信息 -->
+        <template v-if="column.dataIndex === 'reviewMessage'">
+          <div>审核状态：{{ PIC_REVIEW_STATUS_MAP[record.reviewStatus] }}</div>
+          <div>审核信息：{{ record.reviewMessage }}</div>
+          <div>审核时间：{{ dayjs(record.reviewTime).format('YYYY-MM-DD HH:mm:ss') }}</div>
+          <div>审核人：{{ record.reviewerId }}</div>
+        </template>
         <template v-else-if="column.dataIndex === 'createTime'">
           {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
@@ -51,10 +59,20 @@
           {{ dayjs(record.updateTime).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-button type="primary" danger @click="doDelete(record.id)">删除</a-button>
+          <a-space wrap>
+            <a-button v-if="record.reviewStatus !== 1" type="primary" @click="doReview(record)"
+              >审核
+            </a-button>
+            <a-button type="primary" danger @click="doDelete(record.id)">删除</a-button>
+          </a-space>
         </template>
       </template>
     </a-table>
+    <PictureReviewModal
+      ref="pictureReviewModalRef"
+      :picture="reviewPicture"
+      :onSuccess="onSuccess"
+    />
   </div>
 </template>
 <script lang="ts" setup>
@@ -63,7 +81,8 @@ import { deleteUserUsingPost } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { listPictureByPageUsingPost } from '@/api/pictureController.ts'
-
+import { PIC_REVIEW_STATUS_MAP } from '@/constants/picture.ts'
+import PictureReviewModal from '@/components/picture/PictureReviewModal.vue'
 // 搜索条件
 const searchParams = reactive<API.PictureQueryRequest>({
   current: 1,
@@ -94,6 +113,16 @@ const doDelete = async (id) => {
   } else {
     message.error('删除失败' + res.data.message)
   }
+}
+//审核图片
+const pictureReviewModalRef = ref()
+const reviewPicture = ref<API.Picture>()
+const doReview = (value) => {
+  pictureReviewModalRef.value.showModal()
+  reviewPicture.value = value
+}
+const onSuccess = () => {
+  loadDataList()
 }
 //重新加载数据
 // const resetForm = () => {
@@ -159,6 +188,10 @@ const columns = [
   {
     title: '图片信息',
     dataIndex: 'pictureInfo',
+  },
+  {
+    title: '审核信息',
+    dataIndex: 'reviewMessage',
   },
   {
     title: '用户id',
