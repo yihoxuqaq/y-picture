@@ -9,11 +9,13 @@ import top.yihoxu.ypicturebackend.annotation.AuthCheck;
 import top.yihoxu.ypicturebackend.common.BaseResponse;
 import top.yihoxu.ypicturebackend.common.ResultUtils;
 import top.yihoxu.ypicturebackend.constant.UserConstant;
+import top.yihoxu.ypicturebackend.enums.PictureReviewStatusEnum;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
 import top.yihoxu.ypicturebackend.exception.ErrorCode;
 import top.yihoxu.ypicturebackend.exception.ThrowUtils;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureEditRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
+import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadRequest;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
 import top.yihoxu.ypicturebackend.model.entity.User;
@@ -45,7 +47,6 @@ public class PictureController {
      * 上传图片（可重新上传）
      */
     @PostMapping("/upload")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<PictureVO> uploadPicture(
             @RequestPart("file") MultipartFile multipartFile,
             PictureUploadRequest pictureUploadRequest,
@@ -135,12 +136,25 @@ public class PictureController {
         int pageSize = pictureQueryRequest.getPageSize();
         //限制爬虫
         ThrowUtils.throwIf(pageSize > 20, ErrorCode.PARAMS_ERROR);
+        //仅允许审核通过的图片
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
         //查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, pageSize), pictureService.getQueryWrapper(pictureQueryRequest));
         List<PictureVO> pictureVOList = pictureService.listUsersVO(picturePage.getRecords(), request);
         Page<PictureVO> pictureVOPage = new Page<>(current, pageSize, picturePage.getTotal());
         pictureVOPage.setRecords(pictureVOList);
         return ResultUtils.success(pictureVOPage);
+    }
+
+
+    @PostMapping("/review")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> pictureReview(@RequestBody PictureReviewRequest pictureReviewRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(pictureReviewRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        Boolean result = pictureService.doPictureReview(pictureReviewRequest, loginUser);
+        return ResultUtils.success(result);
+
     }
 
 }

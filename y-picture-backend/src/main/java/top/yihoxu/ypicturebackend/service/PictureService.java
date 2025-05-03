@@ -3,6 +3,7 @@ package top.yihoxu.ypicturebackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.web.multipart.MultipartFile;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
+import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadRequest;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -40,4 +41,20 @@ public interface PictureService extends IService<Picture> {
      * @return
      */
     List<PictureVO> listUsersVO(List<Picture> pictureList, HttpServletRequest request);
+
+
+    /**
+     * 图片审核
+     * @param pictureReviewRequest
+     * @param loginUser
+     */
+    Boolean doPictureReview(PictureReviewRequest pictureReviewRequest,User loginUser);
+
+
+    /**
+     * 填充图片审核
+     * @param picture
+     * @param loginUser
+     */
+    void fillPictureReviewStatus(Picture picture,User loginUser);
 }
