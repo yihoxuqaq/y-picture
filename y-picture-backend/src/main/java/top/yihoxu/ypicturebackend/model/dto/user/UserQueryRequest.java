@@ -1,14 +1,10 @@
 package top.yihoxu.ypicturebackend.model.dto.user;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import top.yihoxu.ypicturebackend.common.PageRequest;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * @author yihoxu

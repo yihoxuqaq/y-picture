@@ -4,8 +4,10 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.RandomUtil;
+import com.qcloud.cos.model.PutObjectRequest;
 import com.qcloud.cos.model.PutObjectResult;
 import com.qcloud.cos.model.ciModel.persistence.ImageInfo;
+import com.qcloud.cos.model.ciModel.persistence.PicOperations;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,9 +19,11 @@ import top.yihoxu.ypicturebackend.manager.upload.dto.UploadPictureResult;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author yihoxu
@@ -74,8 +78,31 @@ public class FileManager {
         } finally {
             this.deleteTempFile(file);
         }
+    }
 
-
+    /**
+     * 上传用户头像
+     *
+     * @param multipartFile
+     * @return
+     */
+    public String uploadUserAvatar(MultipartFile multipartFile) {
+        validPicture(multipartFile);
+        String uuid = RandomUtil.randomString(16);
+        String originalFilename = multipartFile.getOriginalFilename();
+        String avatarPath = String.format("/userAvatar/%s.%s", uuid, FileUtil.getSuffix(originalFilename));
+        File file = null;
+        try {
+            file = File.createTempFile(avatarPath, null);
+            multipartFile.transferTo(file);
+            cosManager.putObject(avatarPath, file);
+            return cosClientConfig.getHost()+avatarPath;
+        } catch (IOException e) {
+            log.error("用户头像上传失败", e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
+        } finally {
+            this.deleteTempFile(file);
+        }
     }
 
 

@@ -1,8 +1,10 @@
 package top.yihoxu.ypicturebackend.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import top.yihoxu.ypicturebackend.annotation.AuthCheck;
 import top.yihoxu.ypicturebackend.common.BaseResponse;
 import top.yihoxu.ypicturebackend.common.DeleteRequest;
@@ -11,15 +13,15 @@ import top.yihoxu.ypicturebackend.constant.UserConstant;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
 import top.yihoxu.ypicturebackend.exception.ErrorCode;
 import top.yihoxu.ypicturebackend.exception.ThrowUtils;
-import top.yihoxu.ypicturebackend.model.dto.user.UserLoginRequest;
-import top.yihoxu.ypicturebackend.model.dto.user.UserQueryRequest;
-import top.yihoxu.ypicturebackend.model.dto.user.UserRegisterRequest;
+import top.yihoxu.ypicturebackend.manager.upload.FileManager;
+import top.yihoxu.ypicturebackend.model.dto.user.*;
 import top.yihoxu.ypicturebackend.model.entity.User;
 import top.yihoxu.ypicturebackend.model.vo.UserVO;
 import top.yihoxu.ypicturebackend.service.UserService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,6 +36,9 @@ public class UserController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private FileManager fileManager;
 
     /**
      * 用户登录
@@ -99,7 +104,7 @@ public class UserController {
         Page<User> page = userService.page(new Page<>(current, pageSize), userService.getQueryWrapper(userQueryRequest));
         List<User> userList = page.getRecords();
         List<UserVO> listUsersVO = userService.listUsersVO(userList);
-        Page<UserVO> userVOPage = new Page<>(current,pageSize,page.getTotal());
+        Page<UserVO> userVOPage = new Page<>(current, pageSize, page.getTotal());
         userVOPage.setRecords(listUsersVO);
         return ResultUtils.success(userVOPage);
 
@@ -113,6 +118,69 @@ public class UserController {
         }
         boolean result = userService.removeById(deleteRequest.getId());
         return ResultUtils.success(result);
+    }
+
+    /**
+     * 用户更新（管理员）
+     *
+     * @param userUpdateRequest
+     * @param request
+     * @return
+     */
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @PostMapping("/update")
+    public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(userUpdateRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        if (!userService.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        User user = new User();
+        BeanUtil.copyProperties(userUpdateRequest, user);
+        boolean result = userService.updateById(user);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(result);
+    }
+
+
+    @PostMapping("/edit")
+    public BaseResponse<Boolean> userEdit(@RequestBody UserEditRequest userEditRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(userEditRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
+        User user = new User();
+        BeanUtil.copyProperties(userEditRequest, user);
+        if (!StrUtil.isBlank(user.getUserPassword())) {
+            String md5Password = userService.md5WithSalt(loginUser.getUserPassword());
+            user.setUserPassword(md5Password);
+        }
+        user.setEditTime(new Date());
+        boolean result = userService.updateById(user);
+        if (!result) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        return ResultUtils.success(result);
+
+    }
+
+    /**
+     * 用户上传头像
+     *
+     * @param multipartFile
+     * @param request
+     * @return
+     */
+    @PostMapping("/upload/avatar")
+    public BaseResponse<String> uploadUserAvatar(@RequestPart("file") MultipartFile multipartFile, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
+        String userAvatarPath = fileManager.uploadUserAvatar(multipartFile);
+        User user = new User();
+        user.setId(loginUser.getId());
+        user.setUserAvatar(userAvatarPath);
+        userService.updateById(user);
+        return ResultUtils.success(userAvatarPath);
+
     }
 
 

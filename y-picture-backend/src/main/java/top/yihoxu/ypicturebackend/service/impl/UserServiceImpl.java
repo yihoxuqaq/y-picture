@@ -2,7 +2,6 @@ package top.yihoxu.ypicturebackend.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestAlgorithm;
 import cn.hutool.crypto.digest.Digester;
@@ -140,6 +139,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param password
      * @return
      */
+    @Override
     public String md5WithSalt(String password) {
         String salt = "yihoxu";
         Digester md5 = new Digester(DigestAlgorithm.MD5);
