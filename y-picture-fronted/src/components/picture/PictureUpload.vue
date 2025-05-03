@@ -41,11 +41,12 @@ const beforeUpload = (file: UploadProps['fileList'][number]) => {
   return isJpgOrPng && isLt3M
 }
 
-const loading = ref<boolean>(false)
+
 /**
  * 上传
  * @param file
  */
+const loading = ref<boolean>(false)
 const handleUpload = async ({ file }: any) => {
   loading.value = true
   try {

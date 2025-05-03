@@ -31,6 +31,10 @@
                     <LogoutOutlined />
                     退出登录
                   </a-menu-item>
+                  <a-menu-item @click="doUserCenter">
+                    <UserOutlined />
+                    个人中心
+                  </a-menu-item>
                 </a-menu>
               </template>
             </a-dropdown>
@@ -46,7 +50,15 @@
 </template>
 <script lang="ts" setup>
 import { computed, h, ref } from 'vue'
-import { PictureOutlined, SearchOutlined, LogoutOutlined,PicCenterOutlined,AlignCenterOutlined,VerticalAlignTopOutlined  } from '@ant-design/icons-vue'
+import {
+  PictureOutlined,
+  SearchOutlined,
+  LogoutOutlined,
+  PicCenterOutlined,
+  AlignCenterOutlined,
+  VerticalAlignTopOutlined,
+  UserOutlined,
+} from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores'
@@ -80,6 +92,12 @@ const doLogout = async () => {
   } else {
     message.error('退出登录失败，' + res.data.message)
   }
+}
+//路由到个人信息
+const doUserCenter = () => {
+  router.push({
+    path: '/userCenter',
+  })
 }
 //过滤菜单
 const filterItems = (menus = [] as MenuProps['items']) => {

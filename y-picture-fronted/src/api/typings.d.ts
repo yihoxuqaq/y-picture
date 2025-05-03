@@ -161,6 +161,15 @@ declare namespace API {
     id?: number
   }
 
+  type UserEditRequest = {
+    id?: number
+    userAccount?: string
+    userAvatar?: string
+    userName?: string
+    userPassword?: string
+    userProfile?: string
+  }
+
   type UserLoginRequest = {
     userAccount?: string
     userPassword?: string
@@ -180,6 +189,14 @@ declare namespace API {
     checkPassword?: string
     userAccount?: string
     userPassword?: string
+  }
+
+  type UserUpdateRequest = {
+    id?: number
+    userAvatar?: string
+    userName?: string
+    userProfile?: string
+    userRole?: string
   }
 
   type UserVO = {

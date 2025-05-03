@@ -66,13 +66,13 @@ const handleSubmit = async (values: any) => {
   // 登录成功，把登录态保存到全局状态中
   if (res.data.code === 0 && res.data.data) {
     await loginUserStore.fetchLoginUser()
-    message.success('注册成功')
+    message.success('登录成功')
     router.push({
       path: '/',
       replace: true,
     })
   } else {
-    message.error('注册失败，' + res.data.message)
+    message.error('登录失败，' + res.data.message)
   }
 }
 </script>

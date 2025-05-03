@@ -25,5 +25,12 @@ router.beforeEach(async (to, from, next) => {
       return
     }
   }
+  if (toUrl.startsWith('/userCenter')) {
+    if (!loginUser) {
+      message.error('请登录！')
+      next(`/loginUser?redirect=${to.fullPath}`)
+      return
+    }
+  }
   next()
 })

@@ -6,6 +6,7 @@ import AddPictureView from '@/views/picture/AddPictureView.vue'
 import PictureDetailView from '@/views/picture/PictureDetailView.vue'
 import PictureManageView from '@/views/picture/PictureManageView.vue'
 import UserManageView from '@/views/user/UserManageView.vue'
+import UserCenterView from '@/views/user/UserCenterView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,6 +20,11 @@ const router = createRouter({
       path: '/loginUser',
       name: '用户登录',
       component: LoginUserView,
+    },
+    {
+      path: '/userCenter',
+      name: '用户中心',
+      component: UserCenterView,
     },
     {
       path: '/registerUser',

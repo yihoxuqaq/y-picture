@@ -14,10 +14,8 @@
         </a-select>
       </a-form-item>
       <a-form-item>
-        <a-space>
           <a-button type="primary" html-type="submit">搜索</a-button>
           <a-button type="primary" ghost @click="resetForm">重新加载数据</a-button>
-        </a-space>
       </a-form-item>
     </a-form>
     <!--    用户列表-->
@@ -36,7 +34,7 @@
             <a-tag color="pink">管理员</a-tag>
           </div>
           <div v-else>
-            <a-tag color="blue">用户</a-tag>
+            <a-tag color="blue">普通用户</a-tag>
           </div>
         </template>
         <template v-else-if="column.dataIndex === 'createTime'">
@@ -46,10 +44,14 @@
           {{ dayjs(record.updateTime).format('YYYY-MM-DD HH:mm:ss') }}
         </template>
         <template v-else-if="column.key === 'action'">
-          <a-button type="primary" danger @click="doDelete(record.id)">删除</a-button>
+          <a-space wrap>
+            <a-button type="primary" @click="updateUser(record)">编辑</a-button>
+            <a-button type="primary" danger @click="doDelete(record.id)">删除</a-button>
+          </a-space>
         </template>
       </template>
     </a-table>
+    <UserUpdateModal ref="userUpdateModalRef" :oleUser="oleUser" :onSuccess="onSuccess" />
   </div>
 </template>
 <script lang="ts" setup>
@@ -57,6 +59,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { deleteUserUsingPost, listUsersByPageUsingPost } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
+import UserUpdateModal from '@/components/user/UserUpdateModal.vue'
 
 // 搜索条件
 const searchParams = reactive<API.UserQueryRequest>({
@@ -98,6 +101,7 @@ const resetForm = () => {
   searchParams.current = 1
   // 重新加载数据
   loadDataList()
+  message.success('刷新成功')
 }
 // 分页参数
 const pagination = computed(() => {
@@ -125,6 +129,16 @@ const doSearch = () => {
 onMounted(() => {
   loadDataList()
 })
+//-------用户编辑--------
+const userUpdateModalRef = ref()
+const oleUser = ref<API.UserVO>()
+const updateUser = (value) => {
+  userUpdateModalRef.value.showModal()
+  oleUser.value = value
+}
+const onSuccess = () => {
+  loadDataList()
+}
 const columns = [
   {
     title: 'id',
