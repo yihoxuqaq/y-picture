@@ -13,6 +13,13 @@ import java.io.Serializable;
 public class PictureUploadRequest implements Serializable {
 
     private static final long serialVersionUID = 2012833172952176309L;
+    /**
+     * 图片id
+     */
     private Long id;
+    /**
+     * 空间id
+     */
+    private Long spaceId;
 
 }

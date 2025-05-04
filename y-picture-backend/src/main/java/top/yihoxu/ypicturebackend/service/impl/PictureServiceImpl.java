@@ -5,7 +5,9 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import top.yihoxu.ypicturebackend.enums.PictureReviewStatusEnum;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
@@ -17,11 +19,13 @@ import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadRequest;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
+import top.yihoxu.ypicturebackend.model.entity.Space;
 import top.yihoxu.ypicturebackend.model.entity.User;
 import top.yihoxu.ypicturebackend.model.vo.PictureVO;
 import top.yihoxu.ypicturebackend.service.PictureService;
 import top.yihoxu.ypicturebackend.mapper.PictureMapper;
 import org.springframework.stereotype.Service;
+import top.yihoxu.ypicturebackend.service.SpaceService;
 import top.yihoxu.ypicturebackend.service.UserService;
 
 import javax.annotation.Resource;
@@ -43,14 +47,21 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private UserService userService;
+    @Resource
+    private SpaceService spaceService;
+
+    @Resource
+    private TransactionTemplate transactionTemplate;
 
     @Override
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
         //用于判断是新增还是更新
-        Long pictureId = null;
+        Long pictureId;
         if (pictureUploadRequest != null) {
             pictureId = pictureUploadRequest.getId();
+        } else {
+            pictureId = null;
         }
         if (pictureId != null) {
             boolean exists = this.lambdaQuery()
@@ -58,12 +69,21 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                     .exists();
             ThrowUtils.throwIf(!exists, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
         }
-        //上传图片的到信息
-        //安装用户id划分目录
-        String uploadPathPrefix = String.format("public/%s", loginUser.getId());
+
+        //根据用户id划分目录
+        Long spaceId = pictureUploadRequest.getSpaceId();
+        String uploadPathPrefix = null;
+        //根据空间id分区上传目录
+        if (spaceId == null) {
+            uploadPathPrefix = String.format("public/%s", loginUser.getId());
+        } else {
+            uploadPathPrefix = String.format("space/%s", loginUser.getId());
+        }
+        //上传图片的到图片信息
         UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
         //构造入库图片信息
         Picture picture = new Picture();
+        picture.setSpaceId(spaceId);
         picture.setUrl(uploadPictureResult.getUrl());
         picture.setName(uploadPictureResult.getPicName());
         picture.setPicSize(uploadPictureResult.getPicSize());
@@ -76,15 +96,33 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             picture.setId(pictureId);
             picture.setEditTime(new Date());
             Picture oldPicture = this.getById(pictureId);
+            picture.setSpaceId(oldPicture.getSpaceId());
             if (!oldPicture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
                 throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
             }
 
         }
         fillPictureReviewStatus(picture, loginUser);
-        boolean result = this.saveOrUpdate(picture);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败");
-
+        transactionTemplate.execute(status -> {
+            boolean result = this.saveOrUpdate(picture);
+            ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+            if (spaceId != null) {
+                Space space = spaceService.getById(spaceId);
+                if (space == null) {
+                    throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "空间不存在");
+                }
+                if (!space.getUserId().equals(loginUser.getId())) {
+                    throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有权限");
+                }
+                boolean update = spaceService.lambdaUpdate()
+                        .eq(Space::getId, spaceId)
+                        .setSql("totalCount = totalCount + 1")
+                        .setSql("totalSize = totalSize + " + picture.getPicSize())
+                        .update();
+                ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "更新额度失败");
+            }
+            return picture;
+        });
         return PictureVO.objToVo(picture);
     }
 
@@ -169,7 +207,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             pictureVO.setUser(userService.getUserVO(user));
         }
         return pictureVOList;
-
     }
 
     @Override
