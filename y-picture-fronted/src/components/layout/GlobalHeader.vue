@@ -58,6 +58,7 @@ import {
   AlignCenterOutlined,
   VerticalAlignTopOutlined,
   UserOutlined,
+  CloudOutlined,
 } from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
@@ -127,6 +128,12 @@ const originItems = [
     icon: () => h(VerticalAlignTopOutlined),
     label: '上传图片',
     title: '上传图片',
+  },
+  {
+    key: '/getUserSpace',
+    icon: () => h(CloudOutlined),
+    label: '个人空间',
+    title: '个人空间',
   },
   {
     key: '/admin/userManage',

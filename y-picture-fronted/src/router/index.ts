@@ -7,6 +7,9 @@ import PictureDetailView from '@/views/picture/PictureDetailView.vue'
 import PictureManageView from '@/views/picture/PictureManageView.vue'
 import UserManageView from '@/views/user/UserManageView.vue'
 import UserCenterView from '@/views/user/UserCenterView.vue'
+import GetUserSpace from '@/components/space/getUserSpace.vue'
+import SpaceDetailView from '@/views/space/SpaceDetailView.vue'
+import SpaceAddView from '@/views/space/SpaceAddView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,6 +54,22 @@ const router = createRouter({
       path: '/admin/pictureManage',
       name: '图片管理',
       component: PictureManageView,
+    },
+    {
+      path: '/getUserSpace',
+      name: '获取用户空间',
+      component: GetUserSpace,
+    },
+    {
+      path: '/spaceDetail/:id',
+      name: '空间详情',
+      component: SpaceDetailView,
+      props: true,
+    },
+    {
+      path: '/spaceAdd',
+      name: '创建空间',
+      component: SpaceAddView,
     },
   ],
 })

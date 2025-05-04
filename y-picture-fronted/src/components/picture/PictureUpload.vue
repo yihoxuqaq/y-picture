@@ -20,6 +20,7 @@ import { message, type UploadProps } from 'ant-design-vue'
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { uploadPictureUsingPost } from '@/api/pictureController.ts'
 import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 interface Props {
   picture: API.PictureVO
@@ -41,16 +42,19 @@ const beforeUpload = (file: UploadProps['fileList'][number]) => {
   return isJpgOrPng && isLt3M
 }
 
-
 /**
  * 上传
  * @param file
  */
+const route = useRoute()
 const loading = ref<boolean>(false)
 const handleUpload = async ({ file }: any) => {
   loading.value = true
   try {
-    const params = props.picture ? { id: props.picture.id } : {}
+    const params = {
+      id: props.picture ? props.picture.id : null,
+      spaceId: route.query.spaceId ? route.query.spaceId : null,
+    }
     const res = await uploadPictureUsingPost(params, {}, file)
     if (res.data.code === 0 && res.data.data) {
       message.success('图片上传成功')

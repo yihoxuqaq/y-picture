@@ -108,6 +108,8 @@ const getOldPicture = async () => {
     }
   }
 }
+//个人空间上传图片
+
 onMounted(() => {
   getOldPicture()
 })

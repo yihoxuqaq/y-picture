@@ -35,6 +35,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseSpaceVO_ = {
+    code?: number
+    data?: SpaceVO
+    message?: string
+  }
+
   type BaseResponseString_ = {
     code?: number
     data?: string
@@ -52,6 +58,11 @@ declare namespace API {
   }
 
   type getPictureVOByIdUsingGETParams = {
+    /** id */
+    id?: number
+  }
+
+  type getUserSpaceByIdUsingGETParams = {
     /** id */
     id?: number
   }
@@ -161,6 +172,23 @@ declare namespace API {
     userId?: number
   }
 
+  type SpaceAddRequest = {
+    spaceLevel?: number
+    spaceName?: string
+  }
+
+  type SpaceVO = {
+    id?: number
+    maxCount?: number
+    maxSize?: number
+    spaceLevel?: number
+    spaceName?: string
+    spaceType?: number
+    totalCount?: number
+    totalSize?: number
+    userId?: number
+  }
+
   type testDownloadFileUsingGETParams = {
     /** filepath */
     filepath?: string
@@ -168,6 +196,7 @@ declare namespace API {
 
   type uploadPictureUsingPOSTParams = {
     id?: number
+    spaceId?: number
   }
 
   type UserEditRequest = {

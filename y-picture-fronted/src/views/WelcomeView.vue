@@ -56,7 +56,6 @@ const searchParams = reactive<API.PictureQueryRequest>({
 // 加载数据
 const loadData = async () => {
   if (loading.value || noMore.value) return
-
   loading.value = true
   try {
     const res = await listPictureVoByPageUsingPost(searchParams)
@@ -67,10 +66,8 @@ const loadData = async () => {
         noMore.value = true
         return
       }
-
       pictureVO.value = [...pictureVO.value, ...newData]
       searchParams.current++
-
       if (newData.length < searchParams.pageSize) {
         noMore.value = true
       }
