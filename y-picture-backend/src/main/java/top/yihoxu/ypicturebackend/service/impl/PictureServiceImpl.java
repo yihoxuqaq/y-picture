@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWra
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import top.yihoxu.ypicturebackend.common.DeleteRequest;
 import top.yihoxu.ypicturebackend.enums.PictureReviewStatusEnum;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
 import top.yihoxu.ypicturebackend.exception.ErrorCode;
@@ -55,7 +56,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Override
     public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NO_AUTH_ERROR);
+
         //用于判断是新增还是更新
         Long pictureId;
         if (pictureUploadRequest != null) {
@@ -150,6 +151,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         Long reviewerId = pictureQueryRequest.getReviewerId();
         Integer reviewStatus = pictureQueryRequest.getReviewStatus();
         String reviewMessage = pictureQueryRequest.getReviewMessage();
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        Boolean nullSpaceId = pictureQueryRequest.getNullSpaceId();
         // 从多字段中搜索
         if (StrUtil.isNotBlank(searchText)) {
             // 需要拼接查询条件
@@ -160,6 +163,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
         queryWrapper.eq(ObjUtil.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjUtil.isNotEmpty(userId), "userId", userId);
+        queryWrapper.eq(ObjUtil.isNotEmpty(spaceId), "spaceId", spaceId);
         queryWrapper.like(StrUtil.isNotBlank(name), "name", name);
         queryWrapper.like(StrUtil.isNotBlank(introduction), "introduction", introduction);
         queryWrapper.like(StrUtil.isNotBlank(picFormat), "picFormat", picFormat);
@@ -171,6 +175,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.eq(ObjUtil.isNotEmpty(picScale), "picScale", picScale);
         queryWrapper.eq(ObjUtil.isNotEmpty(reviewerId), "reviewerId", reviewerId);
         queryWrapper.eq(ObjUtil.isNotEmpty(reviewStatus), "reviewStatus", reviewStatus);
+        queryWrapper.isNull(nullSpaceId, "spaceId");
         // JSON 数组查询
         if (CollUtil.isNotEmpty(tags)) {
             for (String tag : tags) {
@@ -185,7 +190,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     @Override
     public List<PictureVO> listUsersVO(List<Picture> pictureList, HttpServletRequest request) {
         if (CollUtil.isEmpty(pictureList)) {
-            new ArrayList<Picture>();
+            return new ArrayList<PictureVO>();
         }
         //对象列表->分装类列表
         List<PictureVO> pictureVOList = pictureList.stream()
@@ -254,6 +259,35 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         } else {
             picture.setReviewStatus(PictureReviewStatusEnum.REVIEWING.getValue());
         }
+    }
+
+    @Override
+    public boolean deletePicture(DeleteRequest deleteRequest, User loginUser) {
+        Long id = deleteRequest.getId();
+        Picture picture = this.getById(id);
+        if (picture == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        if (!picture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+
+        transactionTemplate.execute(status -> {
+            if (picture.getSpaceId() != null) {
+                Space space = spaceService.getById(picture.getSpaceId());
+                boolean update = spaceService.lambdaUpdate()
+                        .eq(Space::getId, picture.getSpaceId())
+                        .setSql("totalCount = totalCount - 1")
+                        .setSql("totalSize = totalSize - " + picture.getPicSize())
+                        .update();
+                ThrowUtils.throwIf(!update, ErrorCode.OPERATION_ERROR, "更新额度失败");
+
+            }
+            boolean deletePicture = this.removeById(deleteRequest.getId());
+            ThrowUtils.throwIf(!deletePicture, ErrorCode.OPERATION_ERROR, "删除图片失败");
+            return deletePicture;
+        });
+        return true;
     }
 
 }

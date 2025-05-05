@@ -2,6 +2,7 @@ package top.yihoxu.ypicturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.web.multipart.MultipartFile;
+import top.yihoxu.ypicturebackend.common.DeleteRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadRequest;
@@ -57,4 +58,11 @@ public interface PictureService extends IService<Picture> {
      * @param loginUser
      */
     void fillPictureReviewStatus(Picture picture,User loginUser);
+
+    /**
+     * 删除图片
+     * @param deleteRequest
+     * @param loginUser
+     */
+    boolean deletePicture(DeleteRequest deleteRequest, User loginUser);
 }
