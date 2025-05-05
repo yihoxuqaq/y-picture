@@ -2,6 +2,21 @@
 /* eslint-disable */
 import request from '@/request'
 
+/** deletePicture POST /api/picture/delete */
+export async function deletePictureUsingPost(
+  body: API.DeleteRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseBoolean_>('/api/picture/delete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
 /** editPicture POST /api/picture/editPicture */
 export async function editPictureUsingPost(
   body: API.PictureEditRequest,

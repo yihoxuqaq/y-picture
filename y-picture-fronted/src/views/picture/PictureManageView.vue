@@ -80,7 +80,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { deleteUserUsingPost } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import { listPictureByPageUsingPost } from '@/api/pictureController.ts'
+import { deletePictureUsingPost, listPictureByPageUsingPost } from '@/api/pictureController.ts'
 import { PIC_REVIEW_STATUS_MAP } from '@/constants/picture.ts'
 import PictureReviewModal from '@/components/picture/PictureReviewModal.vue'
 // 搜索条件
@@ -92,6 +92,7 @@ const dataList = ref<API.Picture[]>([])
 const total = ref<number>(0)
 const loadDataList = async () => {
   const res = await listPictureByPageUsingPost({
+    nullSpaceId: true,
     ...searchParams,
   })
   if (res.data.code === 0) {
@@ -104,7 +105,7 @@ const loadDataList = async () => {
 
 //删除数据
 const doDelete = async (id) => {
-  const res = await deleteUserUsingPost({
+  const res = await deletePictureUsingPost({
     id: id,
   })
   if (res.data.code === 0) {

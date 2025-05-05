@@ -42,22 +42,25 @@
         />
       </a-collapse-panel>
     </a-collapse>
+    <PictureList :pictureList="pictureDataList" :doReload="doReload" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 import { FolderOpenOutlined, UploadOutlined, CloudOutlined } from '@ant-design/icons-vue'
 import { getUserSpaceByIdUsingGet } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
 import { formatSize } from '@/util'
 import { useRouter } from 'vue-router'
+import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
+import PictureList from '@/components/picture/PictureList.vue'
 
 const props = defineProps<{
   id: number
 }>()
 const spaceVO = ref<API.SpaceVO>()
-const loadData = async () => {
+const loadSpaceData = async () => {
   const res = await getUserSpaceByIdUsingGet({
     id: props.id,
   })
@@ -68,7 +71,8 @@ const loadData = async () => {
   }
 }
 onMounted(() => {
-  loadData()
+  loadSpaceData()
+  loadPictureList()
 })
 //上传图片
 const router = useRouter()
@@ -80,11 +84,26 @@ const doUploadPicture = () => {
     },
   })
 }
-const activeKey = ref(['1'])
 
-watch(activeKey, (val) => {
-  console.log(val)
-})
+//加载图片列表
+const pictureDataList = ref<API.SpaceVO[]>()
+const loadPictureList = async () => {
+  const res = await listPictureVoByPageUsingPost({
+    spaceId: props.id,
+    nullSpaceId: false,
+  })
+  if (res.data.code === 0 && res.data.data) {
+    pictureDataList.value = res.data.data.records ?? []
+  } else {
+    message.error(res.data.message)
+  }
+}
+//重新加载数据
+const doReload = () => {
+  loadPictureList()
+  loadSpaceData()
+}
+const activeKey = ref(['1'])
 </script>
 
 <style scoped>
