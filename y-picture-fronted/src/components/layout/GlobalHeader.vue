@@ -158,7 +158,7 @@ const originItems = [
       {
         label: '爬取图片',
         title: '图片扩展',
-        key: '爬取图片',
+        key: '/pictureGrad',
         icon: () => h(BugOutlined),
       },
     ],

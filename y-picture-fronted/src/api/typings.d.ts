@@ -5,6 +5,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseListPictureGradVO_ = {
+    code?: number
+    data?: PictureGradVO[]
+    message?: string
+  }
+
   type BaseResponseLong_ = {
     code?: number
     data?: number
@@ -125,9 +131,17 @@ declare namespace API {
     tags?: string[]
   }
 
+  type PictureGradVO = {
+    mainImageUrl?: string
+    pageUrl?: string
+    thumbnailUrl?: string
+    title?: string
+  }
+
   type PictureQueryRequest = {
     category?: string
     current?: number
+    endCreateTime?: string
     id?: number
     introduction?: string
     name?: string
@@ -145,6 +159,7 @@ declare namespace API {
     sortField?: string
     sortOrder?: string
     spaceId?: number
+    startCreateTime?: string
     tags?: string[]
     userId?: number
   }
@@ -153,6 +168,11 @@ declare namespace API {
     id?: number
     reviewMessage?: string
     reviewStatus?: number
+  }
+
+  type PictureUploadByBatchRequest = {
+    count?: number
+    searchText?: string
   }
 
   type PictureUploadRequest = {

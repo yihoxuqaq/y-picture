@@ -10,6 +10,7 @@ import UserCenterView from '@/views/user/UserCenterView.vue'
 import GetUserSpace from '@/components/space/getUserSpace.vue'
 import SpaceDetailView from '@/views/space/SpaceDetailView.vue'
 import SpaceAddView from '@/views/space/SpaceAddView.vue'
+import PictureGradView from '@/views/picture/PictureGradView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
       name: '图片详情',
       component: PictureDetailView,
       props: true,
+    },
+    {
+      path: '/pictureGrad',
+      name: '图片抓取',
+      component: PictureGradView,
     },
     {
       path: '/admin/userManage',
