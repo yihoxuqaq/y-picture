@@ -14,15 +14,12 @@ import top.yihoxu.ypicturebackend.enums.PictureReviewStatusEnum;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
 import top.yihoxu.ypicturebackend.exception.ErrorCode;
 import top.yihoxu.ypicturebackend.exception.ThrowUtils;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureEditRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadRequest;
+import top.yihoxu.ypicturebackend.model.dto.picture.*;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
 import top.yihoxu.ypicturebackend.model.entity.Space;
 import top.yihoxu.ypicturebackend.model.entity.User;
 import top.yihoxu.ypicturebackend.model.vo.PictureVO;
-import top.yihoxu.ypicturebackend.model.vo.UserVO;
+import top.yihoxu.ypicturebackend.model.vo.PictureGradVO;
 import top.yihoxu.ypicturebackend.service.PictureService;
 import top.yihoxu.ypicturebackend.service.SpaceService;
 import top.yihoxu.ypicturebackend.service.UserService;
@@ -69,6 +66,19 @@ public class PictureController {
             }
         }
         PictureVO pictureVO = pictureService.uploadPicture(multipartFile, pictureUploadRequest, loginUser);
+        return ResultUtils.success(pictureVO);
+    }
+
+    /**
+     * 通过 URL 上传图片（可重新上传）
+     */
+    @PostMapping("/upload/url")
+    public BaseResponse<PictureVO> uploadPictureByUrl(
+            @RequestBody PictureUploadRequest pictureUploadRequest,
+            HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        String fileUrl = pictureUploadRequest.getFileUrl();
+        PictureVO pictureVO = pictureService.uploadPicture(fileUrl, pictureUploadRequest, loginUser);
         return ResultUtils.success(pictureVO);
     }
 
@@ -172,6 +182,13 @@ public class PictureController {
     }
 
 
+    /**
+     * 审核图片
+     *
+     * @param pictureReviewRequest
+     * @param request
+     * @return
+     */
     @PostMapping("/review")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> pictureReview(@RequestBody PictureReviewRequest pictureReviewRequest, HttpServletRequest request) {
@@ -182,13 +199,33 @@ public class PictureController {
 
     }
 
+    /**
+     * 删除图片
+     *
+     * @param deleteRequest
+     * @param request
+     * @return
+     */
     @PostMapping("/delete")
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
-        ThrowUtils.throwIf(deleteRequest==null||deleteRequest.getId()<0, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(deleteRequest == null || deleteRequest.getId() < 0, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         boolean b = pictureService.deletePicture(deleteRequest, loginUser);
 
         return ResultUtils.success(b);
     }
+
+    @PostMapping("/upload/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<List<PictureGradVO>> uploadPictureByBatch(
+            @RequestBody PictureUploadByBatchRequest pictureUploadByBatchRequest,
+            HttpServletRequest request
+    ) {
+        ThrowUtils.throwIf(pictureUploadByBatchRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        List<PictureGradVO> strings = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
+        return ResultUtils.success(strings);
+    }
+
 
 }

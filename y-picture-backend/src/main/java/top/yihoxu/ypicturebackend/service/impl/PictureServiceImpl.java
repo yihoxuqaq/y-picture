@@ -4,11 +4,15 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.multipart.MultipartFile;
 import top.yihoxu.ypicturebackend.common.DeleteRequest;
 import top.yihoxu.ypicturebackend.enums.PictureReviewStatusEnum;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
@@ -16,13 +20,18 @@ import top.yihoxu.ypicturebackend.exception.ErrorCode;
 import top.yihoxu.ypicturebackend.exception.ThrowUtils;
 import top.yihoxu.ypicturebackend.manager.upload.FileManager;
 import top.yihoxu.ypicturebackend.manager.upload.dto.UploadPictureResult;
+import top.yihoxu.ypicturebackend.manager.upload.template.PictureUpload;
+import top.yihoxu.ypicturebackend.manager.upload.template.PictureUploadByURL;
+import top.yihoxu.ypicturebackend.manager.upload.template.PictureUploadTemplate;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
+import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadByBatchRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadRequest;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
 import top.yihoxu.ypicturebackend.model.entity.Space;
 import top.yihoxu.ypicturebackend.model.entity.User;
 import top.yihoxu.ypicturebackend.model.vo.PictureVO;
+import top.yihoxu.ypicturebackend.model.vo.PictureGradVO;
 import top.yihoxu.ypicturebackend.service.PictureService;
 import top.yihoxu.ypicturebackend.mapper.PictureMapper;
 import org.springframework.stereotype.Service;
@@ -31,6 +40,7 @@ import top.yihoxu.ypicturebackend.service.UserService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +50,7 @@ import java.util.stream.Collectors;
  * @createDate 2025-05-02 13:25:21
  */
 @Service
+@Slf4j
 public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         implements PictureService {
 
@@ -52,10 +63,16 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     private SpaceService spaceService;
 
     @Resource
+    private PictureUpload pictureUpload;
+
+    @Resource
+    private PictureUploadByURL pictureUploadByURL;
+
+    @Resource
     private TransactionTemplate transactionTemplate;
 
     @Override
-    public PictureVO uploadPicture(MultipartFile multipartFile, PictureUploadRequest pictureUploadRequest, User loginUser) {
+    public PictureVO uploadPicture(Object inputSource, PictureUploadRequest pictureUploadRequest, User loginUser) {
 
         //用于判断是新增还是更新
         Long pictureId;
@@ -81,7 +98,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             uploadPathPrefix = String.format("space/%s", loginUser.getId());
         }
         //上传图片的到图片信息
-        UploadPictureResult uploadPictureResult = fileManager.uploadPicture(multipartFile, uploadPathPrefix);
+        PictureUploadTemplate pictureUploadTemplate = pictureUpload;
+        if (inputSource instanceof String) {
+            pictureUploadTemplate = pictureUploadByURL;
+        }
+        UploadPictureResult uploadPictureResult = pictureUploadTemplate.uploadPicture(inputSource, uploadPathPrefix);
         //构造入库图片信息
         Picture picture = new Picture();
         picture.setSpaceId(spaceId);
@@ -127,6 +148,7 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         return PictureVO.objToVo(picture);
     }
 
+
     @Override
     public QueryWrapper<Picture> getQueryWrapper(PictureQueryRequest pictureQueryRequest) {
         QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
@@ -153,6 +175,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         String reviewMessage = pictureQueryRequest.getReviewMessage();
         Long spaceId = pictureQueryRequest.getSpaceId();
         Boolean nullSpaceId = pictureQueryRequest.getNullSpaceId();
+        Date startCreateTime = pictureQueryRequest.getStartCreateTime();
+        Date endCreateTime = pictureQueryRequest.getEndCreateTime();
         // 从多字段中搜索
         if (StrUtil.isNotBlank(searchText)) {
             // 需要拼接查询条件
@@ -175,6 +199,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         queryWrapper.eq(ObjUtil.isNotEmpty(picScale), "picScale", picScale);
         queryWrapper.eq(ObjUtil.isNotEmpty(reviewerId), "reviewerId", reviewerId);
         queryWrapper.eq(ObjUtil.isNotEmpty(reviewStatus), "reviewStatus", reviewStatus);
+        queryWrapper.ge(ObjUtil.isNotEmpty(startCreateTime), "createTime", startCreateTime);
+        queryWrapper.lt(ObjUtil.isNotEmpty(endCreateTime), "createTime", endCreateTime);
         queryWrapper.isNull(nullSpaceId, "spaceId");
         // JSON 数组查询
         if (CollUtil.isNotEmpty(tags)) {
@@ -289,6 +315,35 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         });
         return true;
     }
+
+    @Override
+    public List<PictureGradVO> uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser) {
+        String searchText = pictureUploadByBatchRequest.getSearchText();
+        // 格式化数量
+        Integer count = pictureUploadByBatchRequest.getCount();
+        ThrowUtils.throwIf(count > 30, ErrorCode.PARAMS_ERROR, "最多 30 条");
+        // 要抓取的地址
+        String fetchUrl = String.format("https://cn.bing.com/images/async?q=%s&mmasync=1", searchText);
+        Document document;
+        try {
+            document = Jsoup.connect(fetchUrl).get();
+        } catch (IOException e) {
+            log.error("获取页面失败", e);
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "获取页面失败");
+        }
+        Element div = document.getElementsByClass("dgControl").first();
+        if (ObjUtil.isNull(div)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "获取元素失败");
+        }
+        List<PictureGradVO> pictureGradVOList = new ArrayList<>();
+        Elements imgElementList = div.select("a.iusc");
+        for (Element imgElement : imgElementList) {
+            pictureGradVOList.add(JSONUtil.toBean(imgElement.attr("m"), PictureGradVO.class));
+            System.out.println(imgElement.attr("m"));
+        }
+        return pictureGradVOList.stream().limit(count).collect(Collectors.toList());
+    }
+
 
 }
 

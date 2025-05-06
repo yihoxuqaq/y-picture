@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import top.yihoxu.ypicturebackend.common.PageRequest;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -100,6 +101,17 @@ public class PictureQueryRequest extends PageRequest implements Serializable {
      * 是否访问公共空间
      */
     private Boolean nullSpaceId;
+
+    /**
+     * 开始上传时间
+     */
+    private Date startCreateTime;
+
+    /**
+     * 结束上传时间
+     */
+    private Date endCreateTime;
+
 
 
 }
