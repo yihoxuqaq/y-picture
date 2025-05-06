@@ -155,6 +155,12 @@ declare namespace API {
     reviewStatus?: number
   }
 
+  type PictureUploadRequest = {
+    fileUrl?: string
+    id?: number
+    spaceId?: number
+  }
+
   type PictureVO = {
     category?: string
     createTime?: string
@@ -197,6 +203,7 @@ declare namespace API {
   }
 
   type uploadPictureUsingPOSTParams = {
+    fileUrl?: string
     id?: number
     spaceId?: number
   }

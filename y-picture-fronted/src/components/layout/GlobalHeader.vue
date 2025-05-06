@@ -59,6 +59,8 @@ import {
   VerticalAlignTopOutlined,
   UserOutlined,
   CloudOutlined,
+  BugOutlined,
+  ExpandAltOutlined,
 } from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
@@ -146,6 +148,20 @@ const originItems = [
     icon: () => h(PicCenterOutlined),
     label: '图片管理',
     title: '图片管理',
+  },
+  {
+    key: '',
+    icon: () => h(ExpandAltOutlined),
+    label: '图片扩展',
+    title: '图片扩展',
+    children: [
+      {
+        label: '爬取图片',
+        title: '图片扩展',
+        key: '爬取图片',
+        icon: () => h(BugOutlined),
+      },
+    ],
   },
   {
     key: 'others',

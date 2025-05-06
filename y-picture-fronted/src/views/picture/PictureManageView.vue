@@ -77,7 +77,6 @@
 </template>
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { deleteUserUsingPost } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { deletePictureUsingPost, listPictureByPageUsingPost } from '@/api/pictureController.ts'

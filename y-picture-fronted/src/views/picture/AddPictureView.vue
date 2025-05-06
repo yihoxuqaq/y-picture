@@ -7,7 +7,9 @@
             <a-tab-pane key="1" tab="图片上传">
               <PictureUpload :picture="picture" :onSuccess="onSuccess" />
             </a-tab-pane>
-            <a-tab-pane key="2" tab="地址上传">地址上传</a-tab-pane>
+            <a-tab-pane key="2" tab="地址上传">
+              <PictureUploadByURL :onSuccess="onSuccess" :pictureVO="picture" />
+            </a-tab-pane>
           </a-tabs>
         </a-card>
         <a-card size="small" style="width: 500px" title="图片信息" v-if="picture">
@@ -54,6 +56,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { editPictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
+import PictureUploadByURL from '@/components/picture/PictureUploadByURL.vue'
 
 const activeKey = ref('1')
 const picture = ref<API.PictureVO>()
@@ -109,7 +112,6 @@ const getOldPicture = async () => {
   }
 }
 //个人空间上传图片
-
 onMounted(() => {
   getOldPicture()
 })

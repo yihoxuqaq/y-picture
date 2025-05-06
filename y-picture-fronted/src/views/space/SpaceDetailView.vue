@@ -43,11 +43,22 @@
       </a-collapse-panel>
     </a-collapse>
     <PictureList :pictureList="pictureDataList" :doReload="doReload" />
+    <a-row justify="end" style="margin-top: 16px">
+      <a-col>
+        <a-pagination
+          v-model:current="searchParams.current"
+          v-model:pageSize="searchParams.pageSize"
+          :showTotal="shoTotal"
+          :total="total"
+          @change="change"
+        />
+      </a-col>
+    </a-row>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { FolderOpenOutlined, UploadOutlined, CloudOutlined } from '@ant-design/icons-vue'
 import { getUserSpaceByIdUsingGet } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
@@ -86,18 +97,34 @@ const doUploadPicture = () => {
 }
 
 //加载图片列表
+const searchParams = reactive<API.PictureQueryRequest>({
+  current: 1,
+  pageSize: 10,
+})
+const total = ref(0)
 const pictureDataList = ref<API.SpaceVO[]>()
 const loadPictureList = async () => {
   const res = await listPictureVoByPageUsingPost({
     spaceId: props.id,
     nullSpaceId: false,
+    ...searchParams,
   })
   if (res.data.code === 0 && res.data.data) {
     pictureDataList.value = res.data.data.records ?? []
+    total.value = res.data.data.total ?? 0
   } else {
     message.error(res.data.message)
   }
 }
+const shoTotal = (total, range) => {
+  return `共 ${total} 条`
+}
+const change = (page, pageSize) => {
+  searchParams.current = page
+  searchParams.pageSize = pageSize
+  loadPictureList()
+}
+
 //重新加载数据
 const doReload = () => {
   loadPictureList()
