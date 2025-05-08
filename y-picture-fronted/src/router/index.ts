@@ -2,15 +2,16 @@ import { createRouter, createWebHistory } from 'vue-router'
 import WelcomeView from '@/views/WelcomeView.vue'
 import LoginUserView from '@/views/user/LoginUserView.vue'
 import RegisterUserView from '@/views/user/RegisterUserView.vue'
-import AddPictureView from '@/views/picture/AddPictureView.vue'
+import PictureAddView from '@/views/picture/PictureAddView.vue'
 import PictureDetailView from '@/views/picture/PictureDetailView.vue'
 import PictureManageView from '@/views/picture/PictureManageView.vue'
 import UserManageView from '@/views/user/UserManageView.vue'
 import UserCenterView from '@/views/user/UserCenterView.vue'
-import GetUserSpace from '@/components/space/getUserSpace.vue'
+import GetUserSpaceTeam from '@/components/space/getUserSpaceTeam.vue'
 import SpaceDetailView from '@/views/space/SpaceDetailView.vue'
 import SpaceAddView from '@/views/space/SpaceAddView.vue'
 import PictureGradView from '@/views/picture/PictureGradView.vue'
+import GetUserSpacePrivate from '@/components/space/getUserSpacePrivate.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -38,7 +39,7 @@ const router = createRouter({
     {
       path: '/addPicture',
       name: '上传图片',
-      component: AddPictureView,
+      component: PictureAddView,
     },
     {
       path: '/picture/:id',
@@ -62,9 +63,14 @@ const router = createRouter({
       component: PictureManageView,
     },
     {
-      path: '/getUserSpace',
-      name: '获取用户空间',
-      component: GetUserSpace,
+      path: '/getUserSpacePrivate',
+      name: '获取用户个人空间',
+      component: GetUserSpacePrivate,
+    },
+    {
+      path: '/getUserSpaceTeam',
+      name: '获取用户团队空间',
+      component: GetUserSpaceTeam,
     },
     {
       path: '/spaceDetail/:id',

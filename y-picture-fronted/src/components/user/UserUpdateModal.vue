@@ -26,7 +26,6 @@
 </template>
 <script lang="ts" setup>
 import { reactive, ref, watch } from 'vue'
-import { LockOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { updateUserUsingPost } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 

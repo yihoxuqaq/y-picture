@@ -2,7 +2,7 @@
   <div id="addPictureView">
     <div class="center-container">
       <a-flex wrap="wrap" gap="small" class="content-wrapper">
-        <a-card style="width: 500px">
+        <a-card style="width: 600px">
           <a-tabs v-model:activeKey="activeKey">
             <a-tab-pane key="1" tab="图片上传">
               <PictureUpload :picture="picture" :onSuccess="onSuccess" />
@@ -120,24 +120,24 @@ onMounted(() => {
 <style scoped>
 #addPictureView {
   width: 100%;
-  min-height: 100vh; /* 视口高度 */
+  min-height: auto; /* 改为自动高度 */
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start; /* 顶部对齐 */
+  padding: 20px 0; /* 增加上下内边距 */
 }
 
 .center-container {
   display: flex;
   justify-content: center;
-  align-items: center;
   width: 100%;
-  height: 100%;
 }
 
 .content-wrapper {
   display: flex;
   justify-content: center;
-  align-items: center;
-  max-width: 100%; /* 根据内容调整 */
+  max-width: 100%;
+  margin: 0 auto; /* 确保水平居中 */
 }
+
 </style>

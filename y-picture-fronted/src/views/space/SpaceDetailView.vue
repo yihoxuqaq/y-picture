@@ -4,7 +4,7 @@
       <a-col>
         <h2 style="margin: 0">
           <CloudOutlined />
-          个人空间
+          {{ spaceVO?.spaceName}}-{{ SPACE_TYPE_MAP[spaceVO?.spaceType]}}
         </h2>
       </a-col>
       <a-col>
@@ -110,6 +110,7 @@ import { useRouter } from 'vue-router'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import PictureList from '@/components/picture/PictureList.vue'
 import dayjs from 'dayjs'
+import { SPACE_TYPE_MAP } from '@/constants/space.ts'
 
 const props = defineProps<{
   id: number

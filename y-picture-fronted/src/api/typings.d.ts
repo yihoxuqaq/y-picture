@@ -73,6 +73,11 @@ declare namespace API {
     id?: number
   }
 
+  type getUserSpaceUsingGETParams = {
+    /** spaceType */
+    spaceType?: number
+  }
+
   type PagePicture_ = {
     current?: number
     pages?: number
@@ -203,6 +208,7 @@ declare namespace API {
   type SpaceAddRequest = {
     spaceLevel?: number
     spaceName?: string
+    spaceType?: number
   }
 
   type SpaceVO = {

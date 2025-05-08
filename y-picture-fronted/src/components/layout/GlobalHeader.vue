@@ -61,6 +61,7 @@ import {
   CloudOutlined,
   BugOutlined,
   ExpandAltOutlined,
+  TeamOutlined,
 } from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
@@ -68,10 +69,9 @@ import { useLoginUserStore } from '@/stores'
 import { logoutUserUsingPost } from '@/api/userController.ts'
 
 const loginUserStore = useLoginUserStore()
-
 const router = useRouter()
 // 路由跳转事件
-const doMenuClick = ({ key }: { key: string }) => {
+const doMenuClick = ({ item, key, keyPath }) => {
   router.push({
     path: key,
   })
@@ -132,10 +132,24 @@ const originItems = [
     title: '上传图片',
   },
   {
-    key: '/getUserSpace',
+    key: '',
     icon: () => h(CloudOutlined),
     label: '个人空间',
     title: '个人空间',
+    children: [
+      {
+        label: '个人空间',
+        title: '个人空间',
+        key: '/getUserSpacePrivate',
+        icon: () => h(UserOutlined),
+      },
+      {
+        label: '团队空间',
+        title: '团队空间',
+        key: '/getUserSpaceTeam',
+        icon: () => h(TeamOutlined),
+      },
+    ],
   },
   {
     key: '/admin/userManage',

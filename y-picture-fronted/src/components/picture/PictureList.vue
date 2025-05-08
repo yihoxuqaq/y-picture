@@ -16,7 +16,7 @@
               />
             </template>
             <template #actions>
-              <edit-outlined key="edit" @click="(e) => editPicture(item.id)" />
+              <edit-outlined key="edit" @click="(e) => editPicture(item.id, e)" />
               <DeleteOutlined key="setting" @click="(e) => deletePicture(item.id, e)" />
               <ShareAltOutlined key="ellipsis" @click="(e) => doShare(item.id, e)" />
             </template>
@@ -77,7 +77,8 @@ const doDetail = (item) => {
   })
 }
 //编辑图片
-const editPicture = (id) => {
+const editPicture = (id,e) => {
+  e.stopPropagation()
   router.push({
     path: '/addPicture',
     query: {
