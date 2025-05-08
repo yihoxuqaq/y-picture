@@ -84,7 +84,10 @@ const router = useRouter()
 const doPictureDetail = (item) => {
   // 跳转路由
   const r = router.resolve({
-    path: `/picture/${item.id}`,
+    path: '/picture',
+    query: {
+      pictureId: item.id,
+    },
   })
   // 在新页面打开
   window.open(r.href, '_blank')

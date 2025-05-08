@@ -42,10 +42,9 @@ const router = createRouter({
       component: PictureAddView,
     },
     {
-      path: '/picture/:id',
+      path: '/picture',
       name: '图片详情',
       component: PictureDetailView,
-      props: true,
     },
     {
       path: '/pictureGrad',

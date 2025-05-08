@@ -85,7 +85,7 @@
     </a-form>
     <div style="margin-bottom: 28px" />
     <hr />
-    <PictureList :pictureList="pictureDataList" :doReload="doReload" />
+    <PictureList :pictureList="pictureDataList" :doReload="doReload" :spaceVO="spaceVO" />
     <a-row justify="end" style="margin-top: 16px">
       <a-col>
         <a-pagination

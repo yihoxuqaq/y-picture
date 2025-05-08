@@ -83,18 +83,14 @@ import { onMounted, ref } from 'vue'
 import { getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { DownloadOutlined, EditOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import { downloadImage, formatSize } from '@/util/index'
-import { useRouter } from 'vue-router'
+import { downloadImage, formatSize } from '@/util/index.ts'
+import { useRoute, useRouter } from 'vue-router'
 
-interface Props {
-  id: string
-}
-
+const route = useRoute()
 const pictureVO = ref<API.PictureVO>()
-const props = defineProps<Props>()
 const getPictureDetail = async () => {
   const res = await getPictureVoByIdUsingGet({
-    id: props.id,
+    id: route.query.pictureId,
   })
   if (res.data.code === 0) {
     pictureVO.value = res.data.data
@@ -104,11 +100,18 @@ const getPictureDetail = async () => {
 }
 const router = useRouter()
 const doEdit = () => {
-  router.push('/addPicture?id=' + pictureVO.value?.id)
+  router.push({
+    path: '/addPicture',
+    query: {
+      pictureId: pictureVO.value?.id,
+      spaceId: route.query.spaceId,
+      spaceType: route.query.spaceType,
+    },
+  })
 }
 // 处理下载
 const doDownload = () => {
-  downloadImage(pictureVO.value.url)
+  downloadImage(pictureVO.value?.url, pictureVO.value?.name)
 }
 
 onMounted(() => {

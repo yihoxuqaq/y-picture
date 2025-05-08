@@ -11,7 +11,9 @@
           提交
         </a-button>
       </a-input-group>
-      <img v-if="picture?.url" :src="picture?.url" alt="avatar" />
+      <div class="img-wrapper">
+        <img v-if="pictureVO?.url" :src="pictureVO?.url" alt="avatar" />
+      </div>
     </div>
   </div>
 </template>
@@ -37,7 +39,7 @@ const handleUpload = async () => {
   const params = {
     fileUrl: fileUrl.value,
     spaceId: route.query.spaceId ? route.query.spaceId : null,
-    id: props.pictureVO.id ? props.pictureVO.id : null,
+    id: props.pictureVO ? props.pictureVO.id : null,
   }
   const res = await uploadPictureByUrlUsingPost(params)
   if (res.data.code === 0 && res.data.data) {
@@ -52,5 +54,16 @@ const handleUpload = async () => {
 
 <style scoped>
 #pictureUploadByURL {
+}
+
+#pictureUploadByURL .img-wrapper {
+  max-width: 100%;
+  max-height: 480px;
+  text-align: center;
+}
+
+#pictureUploadByURL img {
+  max-width: 100%;
+  max-height: 480px;
 }
 </style>

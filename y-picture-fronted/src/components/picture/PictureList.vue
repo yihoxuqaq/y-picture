@@ -50,6 +50,7 @@ import { ref } from 'vue'
 interface Props {
   pictureList: API.SpaceVO[]
   doReload: () => void
+  spaceVO: API.SpaceVO
 }
 
 const props = defineProps<Props>()
@@ -71,18 +72,22 @@ const router = useRouter()
 const doDetail = (item) => {
   router.push({
     name: '图片详情',
-    params: {
-      id: item.id,
+    query: {
+      pictureId: item.id,
+      spaceId: props.spaceVO.id,
+      spaceType: props.spaceVO.spaceType,
     },
   })
 }
 //编辑图片
-const editPicture = (id,e) => {
+const editPicture = (id, e) => {
   e.stopPropagation()
   router.push({
     path: '/addPicture',
     query: {
       id: id,
+      spaceId: props.spaceVO.id,
+      spaceType: props.spaceVO.spaceType,
     },
   })
 }
@@ -91,7 +96,7 @@ const shareLink = ref<string>()
 const shareModalRef = ref()
 const doShare = (id, e) => {
   e.stopPropagation()
-  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${id}`
+  shareLink.value = `${window.location.protocol}//${window.location.host}/picture?pictureId=${id}`
   if (shareLink.value) {
     shareModalRef.value.openModal()
   }
