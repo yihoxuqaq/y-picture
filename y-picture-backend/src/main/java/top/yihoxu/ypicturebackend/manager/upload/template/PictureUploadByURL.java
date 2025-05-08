@@ -56,7 +56,7 @@ public class PictureUploadByURL extends PictureUploadTemplate {
             if (StrUtil.isNotBlank(contentType)) {
                 //允许图片类型
                 final List<String> ALLOW_TYPE = Arrays.asList("image/jpeg", "image/png", "image/webp");
-                ThrowUtils.throwIf(!ALLOW_TYPE.contains(contentType.toLowerCase()), ErrorCode.PARAMS_ERROR);
+                ThrowUtils.throwIf(!ALLOW_TYPE.contains(contentType.toLowerCase()), ErrorCode.PARAMS_ERROR,"图片类型不符合");
 
             }
             //5、验证文件大小

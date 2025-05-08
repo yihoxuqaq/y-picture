@@ -34,6 +34,9 @@ public class SpaceController {
     @Resource
     private SpaceService spaceService;
 
+
+
+
     /**
      * 创建空间
      *
@@ -60,11 +63,12 @@ public class SpaceController {
      * @param request
      * @return
      */
-    @GetMapping
-    public BaseResponse<Long> getUserSpace(HttpServletRequest request) {
+    @GetMapping("/query")
+    public BaseResponse<Long> getUserSpace(Long spaceType, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         Space space = spaceService.lambdaQuery()
                 .eq(Space::getUserId, loginUser.getId())
+                .eq(Space::getSpaceType, spaceType)
                 .one();
         if (space == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "请先创建空间");
@@ -81,8 +85,8 @@ public class SpaceController {
      */
     @GetMapping("/get/vo")
     public BaseResponse<SpaceVO> getUserSpaceById(Long id, HttpServletRequest request) {
-        if (id==null||id<0){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"参数错误");
+        if (id == null || id < 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误");
         }
         User loginUser = userService.getLoginUser(request);
         Space space = spaceService.getById(id);
