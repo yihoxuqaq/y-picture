@@ -41,7 +41,7 @@ public class PictureUploadByURL extends PictureUploadTemplate {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         //2、验证URL协议
-        ThrowUtils.throwIf(!(fileUrl.startsWith("http://")||fileUrl.startsWith("https://")),
+        ThrowUtils.throwIf(!(fileUrl.startsWith("http://") || fileUrl.startsWith("https://")),
                 ErrorCode.PARAMS_ERROR);
         HttpResponse response = null;
         try {
@@ -56,7 +56,7 @@ public class PictureUploadByURL extends PictureUploadTemplate {
             if (StrUtil.isNotBlank(contentType)) {
                 //允许图片类型
                 final List<String> ALLOW_TYPE = Arrays.asList("image/jpeg", "image/png", "image/webp");
-                ThrowUtils.throwIf(!ALLOW_TYPE.contains(contentType.toLowerCase()), ErrorCode.PARAMS_ERROR,"图片类型不符合");
+                ThrowUtils.throwIf(!ALLOW_TYPE.contains(contentType.toLowerCase()), ErrorCode.PARAMS_ERROR, "图片类型不符合");
 
             }
             //5、验证文件大小

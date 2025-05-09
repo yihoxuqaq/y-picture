@@ -18,11 +18,9 @@ public class PictureGradVO {
     @Alias("turl")
     private String thumbnailUrl;
 
-
     // 标题（原始JSON字段名 t）
     @Alias("t")
     private String title;
-
 
 
 }

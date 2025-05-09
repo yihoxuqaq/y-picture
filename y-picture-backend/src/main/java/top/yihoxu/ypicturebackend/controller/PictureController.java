@@ -47,6 +47,7 @@ public class PictureController {
     @Resource
     private SpaceService spaceService;
 
+
     /**
      * 上传图片（可重新上传）
      */
@@ -120,12 +121,20 @@ public class PictureController {
      * @return
      */
     @GetMapping("/get/vo")
-    public BaseResponse<PictureVO> getPictureVOById(Long id, HttpServletRequest request) {
-        ThrowUtils.throwIf(id == null || id < 0, ErrorCode.PARAMS_ERROR);
+    public BaseResponse<PictureVO> getPictureVOById(long id, HttpServletRequest request) {
+        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+        // 查询数据库
         Picture picture = pictureService.getById(id);
-        if (picture == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(picture == null, ErrorCode.NOT_FOUND_ERROR);
+        // 空间的图片，需要校验权限
+        Space space = null;
+        Long spaceId = picture.getSpaceId();
+        if (spaceId != null) {
+            space = spaceService.getById(spaceId);
+            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
         }
+
+        // 获取封装类
         return ResultUtils.success(PictureVO.objToVo(picture));
     }
 
@@ -168,10 +177,11 @@ public class PictureController {
             User loginUser = userService.getLoginUser(request);
             Long spaceId = pictureQueryRequest.getSpaceId();
             Space space = spaceService.getById(spaceId);
-            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR);
-            if (!space.getUserId().equals(loginUser.getId())) {
-                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
-            }
+            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+//            if (!space.getUserId().equals(loginUser.getId())) {
+//                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
+//            }
+
         }
         //查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, pageSize), pictureService.getQueryWrapper(pictureQueryRequest));
@@ -214,6 +224,7 @@ public class PictureController {
 
         return ResultUtils.success(b);
     }
+
 
     @PostMapping("/upload/batch")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)

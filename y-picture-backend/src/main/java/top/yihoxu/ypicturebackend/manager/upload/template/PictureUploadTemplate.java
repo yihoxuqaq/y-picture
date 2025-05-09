@@ -43,7 +43,7 @@ public abstract class PictureUploadTemplate {
         String originalFilename = getOriginalFilename(inputSource);
         String uploadFileName = String.format("%s_%s.%s", DateUtil.formatDate(new Date()),
                 uuid, FileUtil.getSuffix(originalFilename));
-        String uploadPath = String.format("%S/%S", uploadPathPrefix, uploadFileName);
+        String uploadPath = String.format("%s/%s", uploadPathPrefix, uploadFileName);
         File file = null;
         try {
             //创建临时文件

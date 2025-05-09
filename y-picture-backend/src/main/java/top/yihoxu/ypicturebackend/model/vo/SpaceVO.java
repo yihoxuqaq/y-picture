@@ -1,6 +1,8 @@
 package top.yihoxu.ypicturebackend.model.vo;
 
+import cn.hutool.core.bean.BeanUtil;
 import lombok.Data;
+import top.yihoxu.ypicturebackend.model.entity.Space;
 
 import java.io.Serializable;
 
@@ -10,7 +12,7 @@ import java.io.Serializable;
  * @description 空间视图
  */
 @Data
-public class SpaceVO  implements Serializable {
+public class SpaceVO implements Serializable {
     private static final long serialVersionUID = 942485224500146664L;
     /**
      * id
@@ -57,6 +59,12 @@ public class SpaceVO  implements Serializable {
      */
     private Long userId;
 
-
-
+    public static SpaceVO objToVo(Space space) {
+        if (space == null) {
+            return null;
+        }
+        SpaceVO spaceVO = new SpaceVO();
+        BeanUtil.copyProperties(space, spaceVO);
+        return spaceVO;
+    }
 }

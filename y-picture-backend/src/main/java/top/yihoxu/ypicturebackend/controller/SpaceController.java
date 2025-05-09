@@ -18,6 +18,7 @@ import top.yihoxu.ypicturebackend.service.UserService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author yihoxu
@@ -33,9 +34,6 @@ public class SpaceController {
 
     @Resource
     private SpaceService spaceService;
-
-
-
 
     /**
      * 创建空间
@@ -90,9 +88,9 @@ public class SpaceController {
         }
         User loginUser = userService.getLoginUser(request);
         Space space = spaceService.getById(id);
-        if (!loginUser.getId().equals(space.getUserId())) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有权限访问");
-        }
+//        if (!loginUser.getId().equals(space.getUserId())) {
+//            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有权限访问");
+//        }
         SpaceVO spaceVO = new SpaceVO();
         BeanUtil.copyProperties(space, spaceVO);
         return ResultUtils.success(spaceVO);
