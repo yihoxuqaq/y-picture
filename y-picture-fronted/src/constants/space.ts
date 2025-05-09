@@ -19,3 +19,35 @@ export const SPACE_TYPE_OPTIONS = Object.keys(SPACE_TYPE_MAP).map((key) => {
   }
 })
 
+// 空间角色枚举
+export const SPACE_ROLE_ENUM = {
+  VIEWER: "viewer",
+  EDITOR: "editor",
+  ADMIN: "admin",
+} as const;
+
+// 空间角色文本映射
+export const SPACE_ROLE_MAP: Record<string, string> = {
+  viewer: "浏览者",
+  editor: "编辑者",
+  admin: "管理员",
+};
+
+// 空间角色选项映射
+export const SPACE_ROLE_OPTIONS = Object.keys(SPACE_ROLE_MAP).map((key) => {
+  return {
+    label: SPACE_ROLE_MAP[key],
+    value: key,
+  };
+});
+
+/**
+ * 空间权限常量
+ */
+export const SPACE_PERMISSION_ENUM = {
+  SPACE_USER_MANAGE: "spaceUser:manage",
+  PICTURE_VIEW: "picture:view",
+  PICTURE_UPLOAD: "picture:upload",
+  PICTURE_EDIT: "picture:edit",
+  PICTURE_DELETE: "picture:delete",
+} as const;

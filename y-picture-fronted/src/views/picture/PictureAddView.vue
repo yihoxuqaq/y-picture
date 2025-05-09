@@ -25,6 +25,17 @@
               <SendOutlined />
               发布图片
             </a-typography-title>
+            <a-typography-text type="secondary">
+              图片将上传至{{
+                SPACE_TYPE_MAP[route.query.spaceType]
+                  ? SPACE_TYPE_MAP[route.query.spaceType]
+                  : '公共图库'
+              }}
+              <router-link v-if="route.query.spaceId" :to="`/spaceDetail/${route.query.spaceId}`"
+                >{{ loginUser.userName }}的{{ SPACE_TYPE_MAP[route.query.spaceType] }}
+                （点击回到空间）
+              </router-link>
+            </a-typography-text>
           </a-typography>
         </div>
         <a-flex wrap="wrap" gap="small" class="content-wrapper">

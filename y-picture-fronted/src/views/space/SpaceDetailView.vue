@@ -4,14 +4,29 @@
       <a-col>
         <h2 style="margin: 0">
           <CloudOutlined />
-          {{ spaceVO?.spaceName}}-{{ SPACE_TYPE_MAP[spaceVO?.spaceType]}}
+          {{ spaceVO?.spaceName }}-{{ SPACE_TYPE_MAP[spaceVO?.spaceType] }}
         </h2>
       </a-col>
       <a-col>
-        <a-button type="primary" @click="doUploadPicture">
-          <UploadOutlined />
-          上传图片
-        </a-button>
+        <a-space>
+          <a-button type="primary" @click="doUploadPicture">
+            <UploadOutlined />
+            上传图片
+          </a-button>
+          <a-button
+            v-if="spaceVO?.spaceType === 1"
+            type="primary"
+            ghost
+            :href="`/spaceUserManage/${id}`"
+          >
+            <ApartmentOutlined />
+            成员管理
+          </a-button>
+          <a-button v-if="spaceVO?.spaceType === 1" @click="openDrawer" type="primary" ghost>
+            <CommentOutlined />
+            加入的空间
+          </a-button>
+        </a-space>
       </a-col>
     </a-row>
     <div style="margin-bottom: 28px" />
@@ -97,12 +112,19 @@
         />
       </a-col>
     </a-row>
+    <JoinTeamSpaceDrawer ref="joinTeamSpaceDrawerRef" :spaceUserVO="spaceUserVOList" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from 'vue'
-import { FolderOpenOutlined, UploadOutlined, CloudOutlined } from '@ant-design/icons-vue'
+import {
+  FolderOpenOutlined,
+  UploadOutlined,
+  CloudOutlined,
+  ApartmentOutlined,
+  CommentOutlined,
+} from '@ant-design/icons-vue'
 import { getUserSpaceByIdUsingGet } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
 import { formatSize } from '@/util'
@@ -111,6 +133,8 @@ import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import PictureList from '@/components/picture/PictureList.vue'
 import dayjs from 'dayjs'
 import { SPACE_TYPE_MAP } from '@/constants/space.ts'
+import JoinTeamSpaceDrawer from '@/components/spaceuser/JoinTeamSpaceDrawer.vue'
+import { listMyTeamSpaceUsingPost } from '@/api/spaceUserController.ts'
 
 const props = defineProps<{
   id: number
@@ -137,6 +161,7 @@ const doUploadPicture = () => {
     path: '/addPicture',
     query: {
       spaceId: props.id,
+      spaceType: spaceVO.value?.spaceType,
     },
   })
 }
@@ -210,6 +235,21 @@ const doReload = () => {
   loadSpaceData()
 }
 const activeKey = ref(['1'])
+
+//加入的团队空间抽屉
+const spaceUserVOList = ref<API.SpaceUserVO[]>()
+const joinTeamSpaceDrawerRef = ref()
+const openDrawer = async () => {
+  if (joinTeamSpaceDrawerRef.value) {
+    joinTeamSpaceDrawerRef.value.showDrawer()
+  }
+  const res = await listMyTeamSpaceUsingPost()
+  if (res.data.code === 0) {
+    spaceUserVOList.value = res.data.data
+  } else {
+    message.error(res.data.message)
+  }
+}
 </script>
 
 <style scoped>

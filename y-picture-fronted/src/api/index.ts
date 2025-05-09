@@ -6,11 +6,13 @@ import * as fileController from './fileController'
 import * as healthController from './healthController'
 import * as pictureController from './pictureController'
 import * as spaceController from './spaceController'
+import * as spaceUserController from './spaceUserController'
 import * as userController from './userController'
 export default {
   fileController,
   healthController,
   pictureController,
   spaceController,
+  spaceUserController,
   userController,
 }

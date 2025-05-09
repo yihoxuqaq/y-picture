@@ -1,7 +1,7 @@
 <template>
   <div id="spaceAddView">
     <a-typography-title :level="3">
-      目前暂未开通{{ SPACE_TYPE_MAP[spaceType] }}，请先{{ SPACE_TYPE_MAP[spaceType] }}
+      目前暂未开通{{ SPACE_TYPE_MAP[spaceType] }}，请先创建{{ SPACE_TYPE_MAP[spaceType] }}
     </a-typography-title>
    <a-card>
      <a-form
