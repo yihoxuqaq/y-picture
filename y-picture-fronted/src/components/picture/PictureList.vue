@@ -85,7 +85,7 @@ const editPicture = (id, e) => {
   router.push({
     path: '/addPicture',
     query: {
-      id: id,
+      pictureId: id,
       spaceId: props.spaceVO.id,
       spaceType: props.spaceVO.spaceType,
     },
