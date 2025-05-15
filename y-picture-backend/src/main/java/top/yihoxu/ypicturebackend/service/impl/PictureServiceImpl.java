@@ -136,6 +136,13 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                 if (!space.getUserId().equals(loginUser.getId())) {
                     throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有权限");
                 }
+                //校验额度
+                if (space.getTotalCount()>=space.getMaxCount()){
+                    throw new BusinessException(ErrorCode.OPERATION_ERROR,"空间条数不足");
+                }
+                if (space.getTotalSize()>=space.getMaxSize()){
+                    throw new BusinessException(ErrorCode.OPERATION_ERROR,"空间大小不足");
+                }
                 boolean update = spaceService.lambdaUpdate()
                         .eq(Space::getId, spaceId)
                         .setSql("totalCount = totalCount + 1")

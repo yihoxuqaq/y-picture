@@ -1,6 +1,5 @@
 package top.yihoxu.ypicturebackend.controller;
 
-import cn.dev33.satoken.session.SaSession;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -18,7 +17,6 @@ import top.yihoxu.ypicturebackend.exception.ThrowUtils;
 import top.yihoxu.ypicturebackend.manager.auth.SpaceUserAuthManager;
 import top.yihoxu.ypicturebackend.manager.auth.StpKit;
 import top.yihoxu.ypicturebackend.manager.auth.annotation.SaSpaceCheckPermission;
-import top.yihoxu.ypicturebackend.manager.auth.model.SpaceUserPermission;
 import top.yihoxu.ypicturebackend.manager.auth.model.SpaceUserPermissionConstant;
 import top.yihoxu.ypicturebackend.model.dto.picture.*;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
@@ -32,7 +30,6 @@ import top.yihoxu.ypicturebackend.service.UserService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
