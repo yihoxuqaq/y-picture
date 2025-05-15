@@ -16,9 +16,18 @@
               />
             </template>
             <template #actions>
-              <edit-outlined key="edit" @click="(e) => editPicture(item.id, e)" />
-              <DeleteOutlined key="setting" @click="(e) => deletePicture(item.id, e)" />
-              <ShareAltOutlined key="ellipsis" @click="(e) => doShare(item.id, e)" />
+              <span v-if="canEditPicture">
+                <edit-outlined key="edit" @click="(e) => editPicture(item.id, e)" />
+                编辑
+              </span>
+              <span v-if="canDeletePicture">
+                <DeleteOutlined key="setting" @click="(e) => deletePicture(item.id, e)" />
+                删除
+              </span>
+              <span>
+                <ShareAltOutlined key="ellipsis" @click="(e) => doShare(item.id, e)" />
+                分享
+              </span>
             </template>
             <a-card-meta>
               <template #description>
@@ -45,7 +54,8 @@ import { message } from 'ant-design-vue'
 import { deletePictureUsingPost } from '@/api/pictureController.ts'
 import { useRouter } from 'vue-router'
 import ShareModal from '@/components/picture/ShareModal.vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { SPACE_PERMISSION_ENUM } from '@/constants/space.ts'
 
 interface Props {
   pictureList: API.SpaceVO[]
@@ -101,6 +111,17 @@ const doShare = (id, e) => {
     shareModalRef.value.openModal()
   }
 }
+
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (props.spaceVO.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canEditPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+const canDeletePicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
 </script>
 
 <style scoped>

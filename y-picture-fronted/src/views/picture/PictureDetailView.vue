@@ -59,32 +59,29 @@
               {{ formatSize(pictureVO?.picSize) }}
             </a-descriptions-item>
           </a-descriptions>
-          <a-space wrap>
-            <a-button type="primary" @click="doDownload">
-              免费下载
-              <template #icon>
-                <DownloadOutlined />
-              </template>
-            </a-button>
-            <a-button type="default" @click="doEdit">
+          <template #actions>
+            <span v-if="canEdit" @click="doEdit">
+              <edit-outlined key="edit" />
               编辑
-              <template #icon>
-                <EditOutlined />
-              </template>
-            </a-button>
-          </a-space>
+            </span>
+            <span v-if="canDelete" @click="doDelete">
+              <DeleteOutlined key="edit" />
+              删除
+            </span>
+          </template>
         </a-card>
       </a-col>
     </a-row>
   </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
-import { getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
-import { DownloadOutlined, EditOutlined } from '@ant-design/icons-vue'
+import { computed, onMounted, ref } from 'vue'
+import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
+import { DownloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { downloadImage, formatSize } from '@/util/index.ts'
 import { useRoute, useRouter } from 'vue-router'
+import { SPACE_PERMISSION_ENUM } from '@/constants/space.ts'
 
 const route = useRoute()
 const pictureVO = ref<API.PictureVO>()
@@ -99,6 +96,7 @@ const getPictureDetail = async () => {
   }
 }
 const router = useRouter()
+//编辑图片
 const doEdit = () => {
   router.push({
     path: '/addPicture',
@@ -109,6 +107,27 @@ const doEdit = () => {
     },
   })
 }
+//删除数据
+const doDelete = async () => {
+  const res = await deletePictureUsingPost({
+    id: route.query.pictureId,
+  })
+  if (res.data.code === 0) {
+    if (route.query.spaceId) {
+      message.success('删除成功')
+      router.push({
+        path: '/spaceDetail/' + route.query.spaceId,
+      })
+    } else {
+      message.success('删除成功')
+      router.push({
+        path: '/',
+      })
+    }
+  } else {
+    message.error('删除失败' + res.data.message)
+  }
+}
 // 处理下载
 const doDownload = () => {
   downloadImage(pictureVO.value?.url, pictureVO.value?.name)
@@ -117,6 +136,17 @@ const doDownload = () => {
 onMounted(() => {
   getPictureDetail()
 })
+
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (pictureVO.value?.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canEdit = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
+const canDelete = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
 </script>
 
 <style scoped>

@@ -48,7 +48,7 @@
           <RouterLink to="/loginUser">立即登录</RouterLink>
         </div>
         <a-form-item>
-          <a-button type="primary" html-type="submit" style="width: 100%">登录</a-button>
+          <a-button type="primary" html-type="submit" style="width: 100%">注册</a-button>
         </a-form-item>
       </a-form>
     </div>

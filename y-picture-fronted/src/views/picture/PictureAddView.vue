@@ -146,7 +146,7 @@ const handleSubmit = async (values: any) => {
       },
     })
   } else {
-    message.error('创建失败，' + res.data.message)
+    message.error('操作失败，' + res.data.message)
   }
 }
 //编辑图片

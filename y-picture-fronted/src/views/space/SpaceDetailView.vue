@@ -9,12 +9,12 @@
       </a-col>
       <a-col>
         <a-space>
-          <a-button type="primary" @click="doUploadPicture">
+          <a-button v-if="canUploadPicture" type="primary" @click="doUploadPicture">
             <UploadOutlined />
             上传图片
           </a-button>
           <a-button
-            v-if="spaceVO?.spaceType === 1"
+            v-if="spaceVO?.spaceType === 1 && canManageSpaceUser"
             type="primary"
             ghost
             :href="`/spaceUserManage/${id}`"
@@ -117,7 +117,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import {
   FolderOpenOutlined,
   UploadOutlined,
@@ -132,7 +132,7 @@ import { useRouter } from 'vue-router'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController.ts'
 import PictureList from '@/components/picture/PictureList.vue'
 import dayjs from 'dayjs'
-import { SPACE_TYPE_MAP } from '@/constants/space.ts'
+import { SPACE_PERMISSION_ENUM, SPACE_TYPE_MAP } from '@/constants/space.ts'
 import JoinTeamSpaceDrawer from '@/components/spaceuser/JoinTeamSpaceDrawer.vue'
 import { listMyTeamSpaceUsingPost } from '@/api/spaceUserController.ts'
 
@@ -250,6 +250,17 @@ const openDrawer = async () => {
     message.error(res.data.message)
   }
 }
+
+// 通用权限检查函数
+function createPermissionChecker(permission: string) {
+  return computed(() => {
+    return (spaceVO.value?.permissionList ?? []).includes(permission)
+  })
+}
+
+// 定义权限检查
+const canManageSpaceUser = createPermissionChecker(SPACE_PERMISSION_ENUM.SPACE_USER_MANAGE)
+const canUploadPicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_UPLOAD)
 </script>
 
 <style scoped>

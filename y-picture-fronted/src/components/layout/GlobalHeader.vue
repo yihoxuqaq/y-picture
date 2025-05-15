@@ -134,8 +134,8 @@ const originItems = [
   {
     key: '',
     icon: () => h(CloudOutlined),
-    label: '个人空间',
-    title: '个人空间',
+    label: '空间中心',
+    title: '空间中心',
     children: [
       {
         label: '个人空间',
