@@ -1,21 +1,24 @@
 spring:
   application:
     name: y-picture-backend
-  profiles:
-    active: local
   datasource:
-    url: jdbc:mysql://localhost:3306/picture
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: zxc123hs
+    url: jdbc:mysql://localhost:3306/picture
+    username: xxx
+    password: xxx
   redis:
-    host: local
     database: 0
+    host: localhost
     port: 6379
     timeout: 5000
   session:
     store-type: redis
     timeout: 2952000
+  servlet:
+    multipart:
+      max-file-size: 10MB
+  profiles:
+    active: local
 server:
   port: 8123
   servlet:
@@ -43,3 +46,14 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - top.yihoxu.ypicturebackend.controller
+# 对象存储配置（需要从腾讯云获取）
+cos:
+  client:
+    host: xxxxx
+    secretId: xxxxx
+    secretKey: xxxxx
+    region: xxxxx
+    bucket: xxxxx
+
+aliyun:
+  apiKey: xxxxx

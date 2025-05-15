@@ -1,5 +1,6 @@
 package top.yihoxu.ypicturebackend.controller;
 
+import cn.dev33.satoken.session.SaSession;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,18 +15,24 @@ import top.yihoxu.ypicturebackend.enums.PictureReviewStatusEnum;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
 import top.yihoxu.ypicturebackend.exception.ErrorCode;
 import top.yihoxu.ypicturebackend.exception.ThrowUtils;
+import top.yihoxu.ypicturebackend.manager.auth.SpaceUserAuthManager;
+import top.yihoxu.ypicturebackend.manager.auth.StpKit;
+import top.yihoxu.ypicturebackend.manager.auth.annotation.SaSpaceCheckPermission;
+import top.yihoxu.ypicturebackend.manager.auth.model.SpaceUserPermission;
+import top.yihoxu.ypicturebackend.manager.auth.model.SpaceUserPermissionConstant;
 import top.yihoxu.ypicturebackend.model.dto.picture.*;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
 import top.yihoxu.ypicturebackend.model.entity.Space;
 import top.yihoxu.ypicturebackend.model.entity.User;
-import top.yihoxu.ypicturebackend.model.vo.PictureVO;
 import top.yihoxu.ypicturebackend.model.vo.PictureGradVO;
+import top.yihoxu.ypicturebackend.model.vo.PictureVO;
 import top.yihoxu.ypicturebackend.service.PictureService;
 import top.yihoxu.ypicturebackend.service.SpaceService;
 import top.yihoxu.ypicturebackend.service.UserService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -47,11 +54,14 @@ public class PictureController {
     @Resource
     private SpaceService spaceService;
 
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     /**
      * 上传图片（可重新上传）
      */
     @PostMapping("/upload")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPicture(
             @RequestPart("file") MultipartFile multipartFile,
             PictureUploadRequest pictureUploadRequest,
@@ -74,6 +84,7 @@ public class PictureController {
      * 通过 URL 上传图片（可重新上传）
      */
     @PostMapping("/upload/url")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_UPLOAD)
     public BaseResponse<PictureVO> uploadPictureByUrl(
             @RequestBody PictureUploadRequest pictureUploadRequest,
             HttpServletRequest request) {
@@ -91,6 +102,7 @@ public class PictureController {
      * @return
      */
     @PostMapping("/editPicture")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(pictureEditRequest == null || pictureEditRequest.getId() < 0, ErrorCode.PARAMS_ERROR);
         Long id = pictureEditRequest.getId();
@@ -130,12 +142,18 @@ public class PictureController {
         Space space = null;
         Long spaceId = picture.getSpaceId();
         if (spaceId != null) {
-            space = spaceService.getById(spaceId);
-            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+//            space = spaceService.getById(spaceId);
+//            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+            boolean result = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
+            ThrowUtils.throwIf(!result,ErrorCode.NO_AUTH_ERROR);
         }
-
+        //获取权限列表
+        User loginUser = userService.getLoginUser(request);
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
+        PictureVO pictureVO = PictureVO.objToVo(picture);
+        pictureVO.setPermissionList(permissionList);
         // 获取封装类
-        return ResultUtils.success(PictureVO.objToVo(picture));
+        return ResultUtils.success(pictureVO);
     }
 
     /**
@@ -163,8 +181,7 @@ public class PictureController {
      * @return
      */
     @PostMapping("/list/vo")
-    public BaseResponse<
-            Page<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
+    public BaseResponse<Page<PictureVO>> listPictureVOByPage(@RequestBody PictureQueryRequest pictureQueryRequest, HttpServletRequest request) {
         int current = pictureQueryRequest.getCurrent();
         int pageSize = pictureQueryRequest.getPageSize();
         //限制爬虫
@@ -174,14 +191,15 @@ public class PictureController {
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
             pictureQueryRequest.setNullSpaceId(true);
         } else {
-            User loginUser = userService.getLoginUser(request);
-            Long spaceId = pictureQueryRequest.getSpaceId();
-            Space space = spaceService.getById(spaceId);
-            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+//            User loginUser = userService.getLoginUser(request);
+//            Long id = pictureQueryRequest.getSpaceId();
+//            Space space = spaceService.getById(id);
+//            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
 //            if (!space.getUserId().equals(loginUser.getId())) {
 //                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
 //            }
-
+            boolean result = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
+            ThrowUtils.throwIf(!result,ErrorCode.NO_AUTH_ERROR);
         }
         //查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, pageSize), pictureService.getQueryWrapper(pictureQueryRequest));
@@ -217,6 +235,7 @@ public class PictureController {
      * @return
      */
     @PostMapping("/delete")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_DELETE)
     public BaseResponse<Boolean> deletePicture(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(deleteRequest == null || deleteRequest.getId() < 0, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);

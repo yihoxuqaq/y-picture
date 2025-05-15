@@ -9,6 +9,7 @@ import top.yihoxu.ypicturebackend.common.BaseResponse;
 import top.yihoxu.ypicturebackend.common.ResultUtils;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
 import top.yihoxu.ypicturebackend.exception.ErrorCode;
+import top.yihoxu.ypicturebackend.manager.auth.SpaceUserAuthManager;
 import top.yihoxu.ypicturebackend.model.dto.space.SpaceAddRequest;
 import top.yihoxu.ypicturebackend.model.entity.Space;
 import top.yihoxu.ypicturebackend.model.entity.User;
@@ -35,6 +36,8 @@ public class SpaceController {
     @Resource
     private SpaceService spaceService;
 
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
     /**
      * 创建空间
      *
@@ -91,7 +94,9 @@ public class SpaceController {
 //        if (!loginUser.getId().equals(space.getUserId())) {
 //            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有权限访问");
 //        }
+        List<String> permissionList = spaceUserAuthManager.getPermissionList(space, loginUser);
         SpaceVO spaceVO = new SpaceVO();
+        spaceVO.setPermissionList(permissionList);
         BeanUtil.copyProperties(space, spaceVO);
         return ResultUtils.success(spaceVO);
     }

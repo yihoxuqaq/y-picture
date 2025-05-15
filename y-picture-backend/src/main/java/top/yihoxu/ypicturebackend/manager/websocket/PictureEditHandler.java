@@ -89,12 +89,9 @@ public class PictureEditHandler extends TextWebSocketHandler {
         String message = String.format("%s加入编辑", user.getUserName());
         pictureEditResponseMessage.setMessage(message);
         pictureEditResponseMessage.setUser(userService.getUserVO(user));
-
         //广播给同一张图片的用户
         broadcastToPicture(pictureId, pictureEditResponseMessage);
-
     }
-
     /**
      * 接受客户端的消息
      *

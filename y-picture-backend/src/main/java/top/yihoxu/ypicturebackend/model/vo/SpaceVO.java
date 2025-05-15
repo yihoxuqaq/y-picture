@@ -5,6 +5,8 @@ import lombok.Data;
 import top.yihoxu.ypicturebackend.model.entity.Space;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author yihoxu
@@ -58,6 +60,12 @@ public class SpaceVO implements Serializable {
      * 创建用户 id
      */
     private Long userId;
+
+    /**
+     * 权限列表
+     */
+    private List<String> permissionList = new ArrayList<>();
+
 
     public static SpaceVO objToVo(Space space) {
         if (space == null) {

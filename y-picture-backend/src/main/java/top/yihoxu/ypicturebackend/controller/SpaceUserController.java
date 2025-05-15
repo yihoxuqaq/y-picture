@@ -13,6 +13,8 @@ import top.yihoxu.ypicturebackend.common.ResultUtils;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
 import top.yihoxu.ypicturebackend.exception.ErrorCode;
 import top.yihoxu.ypicturebackend.exception.ThrowUtils;
+import top.yihoxu.ypicturebackend.manager.auth.annotation.SaSpaceCheckPermission;
+import top.yihoxu.ypicturebackend.manager.auth.model.SpaceUserPermissionConstant;
 import top.yihoxu.ypicturebackend.model.dto.spaceuser.SpaceUserAddRequest;
 import top.yihoxu.ypicturebackend.model.dto.spaceuser.SpaceUserEditRequest;
 import top.yihoxu.ypicturebackend.model.dto.spaceuser.SpaceUserQueryRequest;
@@ -48,6 +50,7 @@ public class SpaceUserController {
      * @return
      */
     @PostMapping("/add")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Boolean> addSpaceUser(@RequestBody SpaceUserAddRequest spaceUserAddRequest) {
         ThrowUtils.throwIf(spaceUserAddRequest == null, ErrorCode.PARAMS_ERROR);
         SpaceUser spaceUser = new SpaceUser();
@@ -64,6 +67,7 @@ public class SpaceUserController {
      * @return
      */
     @PostMapping("/delete")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Boolean> deleteSpaceUser(DeleteRequest deleteRequest) {
         ThrowUtils.throwIf(deleteRequest == null || deleteRequest.getId() < 0, ErrorCode.PARAMS_ERROR);
         boolean result = spaceUserService.removeById(deleteRequest);
@@ -79,6 +83,7 @@ public class SpaceUserController {
      * @return
      */
     @PostMapping("/list")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<List<SpaceUserVO>> listSpaceUser(@RequestBody SpaceUserQueryRequest spaceUserQueryRequest) {
         ThrowUtils.throwIf(spaceUserQueryRequest == null, ErrorCode.PARAMS_ERROR);
         QueryWrapper<SpaceUser> queryWrapper = spaceUserService.getQueryWrapper(spaceUserQueryRequest);

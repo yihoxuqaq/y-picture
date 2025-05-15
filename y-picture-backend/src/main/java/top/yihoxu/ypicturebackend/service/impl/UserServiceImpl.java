@@ -13,6 +13,7 @@ import top.yihoxu.ypicturebackend.enums.UserRoleEnum;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
 import top.yihoxu.ypicturebackend.exception.ErrorCode;
 import top.yihoxu.ypicturebackend.exception.ThrowUtils;
+import top.yihoxu.ypicturebackend.manager.auth.StpKit;
 import top.yihoxu.ypicturebackend.model.dto.user.UserLoginRequest;
 import top.yihoxu.ypicturebackend.model.dto.user.UserQueryRequest;
 import top.yihoxu.ypicturebackend.model.dto.user.UserRegisterRequest;
@@ -51,6 +52,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         UserVO userVO = this.getUserVO(user);
         request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, user);
+        //记录用户登录态到Sa-token，
+        StpKit.SPACE.login(user.getId());
+        StpKit.SPACE.getSession().set(UserConstant.USER_LOGIN_STATE,user);
         return userVO;
     }
 
