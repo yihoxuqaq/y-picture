@@ -4,6 +4,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * @author yihoxu
  * @date 2025/4/29  19:08
@@ -14,9 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class HealthController {
 
     @GetMapping
-    public String ok() {
+    public String ok(HttpServletRequest request) {
         return "ok";
     }
-
 
 }

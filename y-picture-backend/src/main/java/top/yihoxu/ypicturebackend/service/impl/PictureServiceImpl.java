@@ -18,6 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import top.yihoxu.ypicturebackend.api.aliyunai.AliYunAiApi;
+import top.yihoxu.ypicturebackend.api.aliyunai.CreateOutPaintingTaskRequest;
+import top.yihoxu.ypicturebackend.api.aliyunai.CreateOutPaintingTaskResponse;
 import top.yihoxu.ypicturebackend.common.DeleteRequest;
 import top.yihoxu.ypicturebackend.enums.PictureReviewStatusEnum;
 import top.yihoxu.ypicturebackend.exception.BusinessException;
@@ -77,6 +80,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private RabbitTemplate rabbitTemplate;
+
+    @Resource
+    private AliYunAiApi aliYunAiApi;
 
     @Override
     public PictureVO uploadPicture(Object inputSource, PictureUploadRequest pictureUploadRequest, User loginUser) {
@@ -401,6 +407,25 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                 }
         );
         return result;
+    }
+
+    @Override
+    public CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser) {
+        //获取图片信息
+        Long pictureId = createPictureOutPaintingTaskRequest.getPictureId();
+        Picture picture = Optional.ofNullable(this.getById(pictureId))
+                .orElseThrow(() -> new BusinessException(ErrorCode.PARAMS_ERROR));
+        if (!picture.getUserId().equals(loginUser.getId())){
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        //构建请求参数
+        CreateOutPaintingTaskRequest createOutPaintingTaskRequest = new CreateOutPaintingTaskRequest();
+       CreateOutPaintingTaskRequest.Input input=new CreateOutPaintingTaskRequest.Input();
+       input.setImageUrl(picture.getUrl());
+       createOutPaintingTaskRequest.setInput(input);
+       BeanUtil.copyProperties(createPictureOutPaintingTaskRequest,createOutPaintingTaskRequest);
+
+        return aliYunAiApi.createOutPaintingTask(createOutPaintingTaskRequest);
     }
 
 

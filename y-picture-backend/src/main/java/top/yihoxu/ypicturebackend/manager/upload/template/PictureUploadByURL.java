@@ -55,7 +55,7 @@ public class PictureUploadByURL extends PictureUploadTemplate {
             String contentType = response.header("Content-Type");
             if (StrUtil.isNotBlank(contentType)) {
                 //允许图片类型
-                final List<String> ALLOW_TYPE = Arrays.asList("image/jpeg", "image/png", "image/webp");
+                final List<String> ALLOW_TYPE = Arrays.asList("image/jpeg", "image/png", "image/webp","application/xml");
                 ThrowUtils.throwIf(!ALLOW_TYPE.contains(contentType.toLowerCase()), ErrorCode.PARAMS_ERROR, "图片类型不符合");
 
             }

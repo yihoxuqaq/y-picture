@@ -2,6 +2,7 @@ package top.yihoxu.ypicturebackend.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.yihoxu.ypicturebackend.api.aliyunai.CreateOutPaintingTaskResponse;
 import top.yihoxu.ypicturebackend.common.DeleteRequest;
 import top.yihoxu.ypicturebackend.model.dto.picture.*;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
@@ -87,4 +88,12 @@ public interface PictureService extends IService<Picture> {
      * @return
      */
     Boolean editPicture(PictureEditRequest pictureEditRequest, User loginUser);
+
+    /**
+     * ai扩图任务
+     * @param createPictureOutPaintingTaskRequest
+     * @param loginUser
+     * @return
+     */
+    CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser);
 }
