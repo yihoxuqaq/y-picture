@@ -12,6 +12,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import top.yihoxu.ypicturebackend.common.DeleteRequest;
 import top.yihoxu.ypicturebackend.enums.PictureReviewStatusEnum;
@@ -23,18 +28,14 @@ import top.yihoxu.ypicturebackend.manager.upload.dto.UploadPictureResult;
 import top.yihoxu.ypicturebackend.manager.upload.template.PictureUpload;
 import top.yihoxu.ypicturebackend.manager.upload.template.PictureUploadByURL;
 import top.yihoxu.ypicturebackend.manager.upload.template.PictureUploadTemplate;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadByBatchRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadRequest;
+import top.yihoxu.ypicturebackend.mapper.PictureMapper;
+import top.yihoxu.ypicturebackend.model.dto.picture.*;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
 import top.yihoxu.ypicturebackend.model.entity.Space;
 import top.yihoxu.ypicturebackend.model.entity.User;
-import top.yihoxu.ypicturebackend.model.vo.PictureVO;
 import top.yihoxu.ypicturebackend.model.vo.PictureGradVO;
+import top.yihoxu.ypicturebackend.model.vo.PictureVO;
 import top.yihoxu.ypicturebackend.service.PictureService;
-import top.yihoxu.ypicturebackend.mapper.PictureMapper;
-import org.springframework.stereotype.Service;
 import top.yihoxu.ypicturebackend.service.SpaceService;
 import top.yihoxu.ypicturebackend.service.UserService;
 
@@ -43,6 +44,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static top.yihoxu.ypicturebackend.rabbitmq.RabbitMQConfig.EXCHANGE_NAME;
+import static top.yihoxu.ypicturebackend.rabbitmq.RabbitMQConfig.ROUTING_KEY;
 
 /**
  * @author hushi
@@ -70,6 +74,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public PictureVO uploadPicture(Object inputSource, PictureUploadRequest pictureUploadRequest, User loginUser) {
@@ -126,6 +133,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
         fillPictureReviewStatus(picture, loginUser);
         transactionTemplate.execute(status -> {
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, "picture:*");
+                        }
+                    }
+            );
             boolean result = this.saveOrUpdate(picture);
             ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
             if (spaceId != null) {
@@ -137,11 +152,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
                     throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有权限");
                 }
                 //校验额度
-                if (space.getTotalCount()>=space.getMaxCount()){
-                    throw new BusinessException(ErrorCode.OPERATION_ERROR,"空间条数不足");
+                if (space.getTotalCount() >= space.getMaxCount()) {
+                    throw new BusinessException(ErrorCode.OPERATION_ERROR, "空间条数不足");
                 }
-                if (space.getTotalSize()>=space.getMaxSize()){
-                    throw new BusinessException(ErrorCode.OPERATION_ERROR,"空间大小不足");
+                if (space.getTotalSize() >= space.getMaxSize()) {
+                    throw new BusinessException(ErrorCode.OPERATION_ERROR, "空间大小不足");
                 }
                 boolean update = spaceService.lambdaUpdate()
                         .eq(Space::getId, spaceId)
@@ -304,7 +319,6 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         if (!picture.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
-
         transactionTemplate.execute(status -> {
             if (picture.getSpaceId() != null) {
                 Space space = spaceService.getById(picture.getSpaceId());
@@ -318,6 +332,14 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             }
             boolean deletePicture = this.removeById(deleteRequest.getId());
             ThrowUtils.throwIf(!deletePicture, ErrorCode.OPERATION_ERROR, "删除图片失败");
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, "picture:*");
+                        }
+                    }
+            );
             return deletePicture;
         });
         return true;
@@ -349,6 +371,36 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             System.out.println(imgElement.attr("m"));
         }
         return pictureGradVOList.stream().limit(count).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public Boolean editPicture(PictureEditRequest pictureEditRequest, User loginUser) {
+        Long id = pictureEditRequest.getId();
+        List<String> tags = pictureEditRequest.getTags();
+        Picture pic = this.getById(id);
+        if (pic == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        String jsonStr = JSONUtil.toJsonStr(tags);
+        if (!loginUser.getId().equals(pic.getUserId()) && !userService.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        Picture picture = new Picture();
+        BeanUtil.copyProperties(pictureEditRequest, picture);
+        picture.setEditTime(new Date());
+        picture.setTags(jsonStr);
+        boolean result = this.updateById(picture);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, "picture:*");
+                    }
+                }
+        );
+        return result;
     }
 
 

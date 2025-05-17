@@ -3,10 +3,7 @@ package top.yihoxu.ypicturebackend.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.yihoxu.ypicturebackend.common.DeleteRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureQueryRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureReviewRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadByBatchRequest;
-import top.yihoxu.ypicturebackend.model.dto.picture.PictureUploadRequest;
+import top.yihoxu.ypicturebackend.model.dto.picture.*;
 import top.yihoxu.ypicturebackend.model.entity.Picture;
 import top.yihoxu.ypicturebackend.model.entity.User;
 import top.yihoxu.ypicturebackend.model.vo.PictureVO;
@@ -82,4 +79,12 @@ public interface PictureService extends IService<Picture> {
      * @return
      */
     List<PictureGradVO> uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest, User loginUser);
+
+    /**
+     * 编辑图片（用户）
+     * @param pictureEditRequest
+     * @param loginUser
+     * @return
+     */
+    Boolean editPicture(PictureEditRequest pictureEditRequest, User loginUser);
 }

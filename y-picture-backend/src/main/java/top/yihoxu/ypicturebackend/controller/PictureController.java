@@ -1,8 +1,11 @@
 package top.yihoxu.ypicturebackend.controller;
 
-import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import top.yihoxu.ypicturebackend.annotation.AuthCheck;
@@ -30,8 +33,8 @@ import top.yihoxu.ypicturebackend.service.UserService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author yihoxu
@@ -53,6 +56,10 @@ public class PictureController {
 
     @Resource
     private SpaceUserAuthManager spaceUserAuthManager;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
 
     /**
      * 上传图片（可重新上传）
@@ -102,24 +109,10 @@ public class PictureController {
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_EDIT)
     public BaseResponse<Boolean> editPicture(@RequestBody PictureEditRequest pictureEditRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(pictureEditRequest == null || pictureEditRequest.getId() < 0, ErrorCode.PARAMS_ERROR);
-        Long id = pictureEditRequest.getId();
-        List<String> tags = pictureEditRequest.getTags();
-        Picture pic = pictureService.getById(id);
-        if (pic == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        String jsonStr = JSONUtil.toJsonStr(tags);
         User loginUser = userService.getLoginUser(request);
-        if (!loginUser.getId().equals(pic.getUserId()) && !userService.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
-        Picture picture = new Picture();
-        BeanUtil.copyProperties(pictureEditRequest, picture);
-        picture.setEditTime(new Date());
-        picture.setTags(jsonStr);
-        boolean result = pictureService.updateById(picture);
-        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        Boolean  result= pictureService.editPicture(pictureEditRequest, loginUser);
         return ResultUtils.success(result);
+
     }
 
     /**
@@ -142,7 +135,7 @@ public class PictureController {
 //            space = spaceService.getById(spaceId);
 //            ThrowUtils.throwIf(space == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
             boolean result = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
-            ThrowUtils.throwIf(!result,ErrorCode.NO_AUTH_ERROR);
+            ThrowUtils.throwIf(!result, ErrorCode.NO_AUTH_ERROR);
         }
         //获取权限列表
         User loginUser = userService.getLoginUser(request);
@@ -183,6 +176,30 @@ public class PictureController {
         int pageSize = pictureQueryRequest.getPageSize();
         //限制爬虫
         ThrowUtils.throwIf(pageSize > 20, ErrorCode.PARAMS_ERROR);
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        ValueOperations<String, String> opsForValue = stringRedisTemplate.opsForValue();
+        //构建redisKey
+        String preKey = "picture:listPictureVOByPage:";
+        String queryRequestStr = JSONUtil.toJsonStr(pictureQueryRequest);
+        String keyMD5 = DigestUtils.md5DigestAsHex(queryRequestStr.getBytes());
+        String redisKey = null;
+        //查询公共图库
+        if (spaceId == null) {
+            redisKey = preKey + keyMD5;
+            String cacheData = opsForValue.get(redisKey);
+            if (cacheData != null) {
+                Page<PictureVO> result = JSONUtil.toBean(cacheData, Page.class);
+                return ResultUtils.success(result);
+            }
+        } else {
+            //查询非公共图库
+            redisKey = preKey + keyMD5 + ":" + spaceId;
+            String cacheData = opsForValue.get(redisKey);
+            if (cacheData != null) {
+                Page<PictureVO> result = JSONUtil.toBean(cacheData, Page.class);
+                return ResultUtils.success(result);
+            }
+        }
         if (pictureQueryRequest.getSpaceId() == null) {
             //仅允许审核通过的图片
             pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
@@ -196,13 +213,18 @@ public class PictureController {
 //                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "没有空间权限");
 //            }
             boolean result = StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW);
-            ThrowUtils.throwIf(!result,ErrorCode.NO_AUTH_ERROR);
+            ThrowUtils.throwIf(!result, ErrorCode.NO_AUTH_ERROR);
         }
         //查询数据库
         Page<Picture> picturePage = pictureService.page(new Page<>(current, pageSize), pictureService.getQueryWrapper(pictureQueryRequest));
         List<PictureVO> pictureVOList = pictureService.listUsersVO(picturePage.getRecords(), request);
         Page<PictureVO> pictureVOPage = new Page<>(current, pageSize, picturePage.getTotal());
         pictureVOPage.setRecords(pictureVOList);
+
+        //加入缓存
+        int cacheTTL = 60 + RandomUtil.randomInt(0, 300);
+        String dataStr = JSONUtil.toJsonStr(pictureVOPage);
+        opsForValue.set(redisKey, dataStr, cacheTTL, TimeUnit.SECONDS);
         return ResultUtils.success(pictureVOPage);
     }
 
