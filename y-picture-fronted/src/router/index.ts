@@ -13,6 +13,7 @@ import SpaceAddView from '@/views/space/SpaceAddView.vue'
 import PictureGradView from '@/views/picture/PictureGradView.vue'
 import GetUserSpacePrivate from '@/components/space/getUserSpacePrivate.vue'
 import SpaceUserManageView from '@/views/spaceuser/SpaceUserManageView.vue'
+import PictureOutPaintingView from '@/views/picture/PictureOutPaintingView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -82,6 +83,11 @@ const router = createRouter({
       path: '/spaceAdd',
       name: '创建空间',
       component: SpaceAddView,
+    },
+    {
+      path: '/pictureOutPainting',
+      name: 'ai扩图',
+      component: PictureOutPaintingView,
     },
     {
       path: '/spaceUserManage/:spaceId',

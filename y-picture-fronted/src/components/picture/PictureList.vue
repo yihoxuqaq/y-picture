@@ -16,16 +16,16 @@
               />
             </template>
             <template #actions>
-              <span v-if="canEditPicture">
-                <edit-outlined key="edit" @click="(e) => editPicture(item.id, e)" />
+              <span v-if="canEditPicture" @click="(e) => editPicture(item.id, e)">
+                <edit-outlined key="edit"  />
                 编辑
               </span>
-              <span v-if="canDeletePicture">
-                <DeleteOutlined key="setting" @click="(e) => deletePicture(item.id, e)" />
+              <span v-if="canDeletePicture" @click="(e) => deletePicture(item.id, e)">
+                <DeleteOutlined key="setting"  />
                 删除
               </span>
-              <span>
-                <ShareAltOutlined key="ellipsis" @click="(e) => doShare(item.id, e)" />
+              <span @click="(e) => doShare(item.id, e)">
+                <ShareAltOutlined key="ellipsis"  />
                 分享
               </span>
             </template>
@@ -115,7 +115,7 @@ const doShare = (id, e) => {
 // 通用权限检查函数
 function createPermissionChecker(permission: string) {
   return computed(() => {
-    return (props.spaceVO.permissionList ?? []).includes(permission)
+    return (props.spaceVO?.permissionList ?? []).includes(permission)
   })
 }
 

@@ -62,6 +62,7 @@ import {
   BugOutlined,
   ExpandAltOutlined,
   TeamOutlined,
+  BorderInnerOutlined,
 } from '@ant-design/icons-vue'
 import { MenuProps, message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
@@ -171,9 +172,15 @@ const originItems = [
     children: [
       {
         label: '爬取图片',
-        title: '图片扩展',
+        title: '爬取图片',
         key: '/pictureGrad',
         icon: () => h(BugOutlined),
+      },
+      {
+        label: 'ai扩图',
+        title: 'ai扩图',
+        key: '/pictureOutPainting',
+        icon: () => h(BorderInnerOutlined),
       },
     ],
   },

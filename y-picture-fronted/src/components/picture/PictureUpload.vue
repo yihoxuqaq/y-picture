@@ -23,7 +23,7 @@ import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 interface Props {
-  picture: API.PictureVO
+  picture?: API.PictureVO
   onSuccess?: (newPicture: API.PictureVO) => void
 }
 

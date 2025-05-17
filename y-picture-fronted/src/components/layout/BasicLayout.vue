@@ -7,7 +7,9 @@
       <a-layout-content class="content">
         <RouterView />
       </a-layout-content>
-      <a-layout-footer class="footer">Footer</a-layout-footer>
+      <a-layout-footer class="footer">
+        <a href="https://beian.miit.gov.cn/#/Integrated/index" target="_blank">黔ICP备2023010441号-1</a>
+      </a-layout-footer>
     </a-layout>
   </div>
 </template>
@@ -34,11 +36,11 @@ import GlobalHeader from '@/components/layout/GlobalHeader.vue'
   margin-bottom: 28px;
   padding: 20px;
 }
+
 #basicLayout .header {
   padding-inline: 20px;
   margin-bottom: 16px;
   color: unset;
   background: white;
 }
-
 </style>
